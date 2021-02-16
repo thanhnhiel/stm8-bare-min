@@ -23,14 +23,14 @@ void UART_LowLevel_Init(void)
     /* Enable USART clock */
     //CLK_PeripheralClockConfig(CLK_Peripheral_USART1, ENABLE);
       /* Enable the peripheral Clock */
-    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << 0x05);
+    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_USART1);
 }
 
 
 void I2C_LowLevel_Init(void)
 {
   /* Enable the peripheral Clock */
-  CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << 0x03);
+  CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_I2C1);
   //CLK_PeripheralClockConfig(CLK_Peripheral_I2C1, ENABLE);
   
   //GPIO_ExternalPullUpConfig(GPIOB, GPIO_Pin_6, ENABLE);

@@ -8,7 +8,7 @@
 
 void main() 
 {
-    CLK_PCKENR1 |= (uint8_t)(1 << 0x06);
+    CLK_PCKENR1 |= (uint8_t)(1 << CLK_Peripheral1_BEEP);
     BEEP_LSICalibrationConfig(2000000);
     BEEP_Init(BEEP_Frequency_1KHz);
 

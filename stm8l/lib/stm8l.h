@@ -3,6 +3,30 @@
 
 #include <stdint.h>
 
+typedef enum {
+  CLK_Peripheral1_TIM2    = (uint8_t)0x00, /*!< Peripheral Clock Enable 1, TIM2 */
+  CLK_Peripheral1_TIM3    = (uint8_t)0x01, /*!< Peripheral Clock Enable 1, TIM3 */
+  CLK_Peripheral1_TIM4    = (uint8_t)0x02, /*!< Peripheral Clock Enable 1, TIM4 */
+  CLK_Peripheral1_I2C1    = (uint8_t)0x03, /*!< Peripheral Clock Enable 1, I2C1 */
+  CLK_Peripheral1_SPI1    = (uint8_t)0x04, /*!< Peripheral Clock Enable 1, SPI1 */
+  CLK_Peripheral1_USART1  = (uint8_t)0x05, /*!< Peripheral Clock Enable 1, USART1 */
+  CLK_Peripheral1_BEEP    = (uint8_t)0x06, /*!< Peripheral Clock Enable 1, BEEP */
+  CLK_Peripheral1_DAC     = (uint8_t)0x07, /*!< Peripheral Clock Enable 1, DAC */
+  CLK_Peripheral2_ADC1    = (uint8_t)0x10, /*!< Peripheral Clock Enable 2, ADC1 */
+  CLK_Peripheral2_TIM1    = (uint8_t)0x11, /*!< Peripheral Clock Enable 2, TIM1 */
+  CLK_Peripheral2_RTC     = (uint8_t)0x12, /*!< Peripheral Clock Enable 2, RTC */
+  CLK_Peripheral2_LCD     = (uint8_t)0x13, /*!< Peripheral Clock Enable 2, LCD */
+  CLK_Peripheral2_DMA1    = (uint8_t)0x14, /*!< Peripheral Clock Enable 2, DMA1 */
+  CLK_Peripheral2_COMP    = (uint8_t)0x15, /*!< Peripheral Clock Enable 2, COMP1 and COMP2 */
+  CLK_Peripheral2_BOOTROM = (uint8_t)0x17,/*!< Peripheral Clock Enable 2, Boot ROM */
+  CLK_Peripheral3_AES     = (uint8_t)0x20, /*!< Peripheral Clock Enable 3, AES */
+  CLK_Peripheral3_TIM5    = (uint8_t)0x21, /*!< Peripheral Clock Enable 3, TIM5 */
+  CLK_Peripheral3_SPI2    = (uint8_t)0x22, /*!< Peripheral Clock Enable 3, SPI2 */
+  CLK_Peripheral3_USART2  = (uint8_t)0x23, /*!< Peripheral Clock Enable 3, USART2 */
+  CLK_Peripheral3_USART3  = (uint8_t)0x24,  /*!< Peripheral Clock Enable 3, USART3 */
+  CLK_Peripheral3_CSSLSE  = (uint8_t)0x25   /*!< Peripheral Clock Enable 3, CSS on LSE */
+} CLK_Peripheral_TypeDef;
+
 #define _MEM_(mem_addr)                 (*(volatile uint8_t *)(mem_addr))
 #define _SFR_(mem_addr)                 (*(volatile uint8_t *)(0x5000 + (mem_addr)))
 #define _SFR16_(mem_addr)               (*(volatile uint16_t *)(0x5000 + (mem_addr)))
