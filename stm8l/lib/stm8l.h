@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define     __IO    volatile         /*!< defines 'read / write' permissions  */
+
 typedef enum {
   CLK_Peripheral1_TIM2    = (uint8_t)0x00, /*!< Peripheral Clock Enable 1, TIM2 */
   CLK_Peripheral1_TIM3    = (uint8_t)0x01, /*!< Peripheral Clock Enable 1, TIM3 */
