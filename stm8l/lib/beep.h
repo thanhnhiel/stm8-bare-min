@@ -46,7 +46,6 @@
 /** @defgroup BEEP_Exported_Types
   * @{
   */
-#define     __IO    volatile         /*!< defines 'read / write' permissions  */
 typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
 
 typedef struct BEEP_struct

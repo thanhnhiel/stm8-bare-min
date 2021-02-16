@@ -1,6 +1,8 @@
 #include "i2c.h"
 #include "stm8l.h"
 
+#ifdef USE_I2C1
+
 void i2c_init() {
     I2C1_FREQR = (1 << I2C1_FREQR_FREQ1);
     I2C1_CCRL = 0x0A; // 100kHz
@@ -45,3 +47,4 @@ void i2c_read_arr(uint8_t *buf, int len) {
     }
     *buf = i2c_read();
 }
+#endif

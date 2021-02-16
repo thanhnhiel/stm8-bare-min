@@ -3,6 +3,55 @@
 
 #include <stdint.h>
 
+#define INTERRUPT_HANDLER(a,b) void a() __interrupt(b)
+
+ /* traps require >=v3.4.3 -> else warn and skip */
+ #if SDCC_VERSION >= 30403
+   #define INTERRUPT_HANDLER_TRAP(a) void a() __trap 
+ #else
+   #warning traps require SDCC>=v3.4.3. Update if required
+   #define INTERRUPT_HANDLER_TRAP(a) void a()
+ #endif 
+ 
+ #define enableInterrupts()    __asm__("rim")    /* enable interrupts */
+ #define disableInterrupts()   __asm__("sim")    /* disable interrupts */
+ #define rim()                 __asm__("rim")    /* enable interrupts */
+ #define sim()                 __asm__("sim")    /* disable interrupts */
+ #define nop()                 __asm__("nop")    /* no operation */
+ #define trap()                __asm__("trap")   /* trap (soft IT) */
+ #define wfi()                 __asm__("wfi")    /* wait for interrupt */
+ #define wfe()                 __asm__("wfe")    /* wait for event */
+ #define halt()                __asm__("halt")   /* halt CPU */
+
+/** @defgroup EXTI_Interrupts
+  *
+  * @brief EXTI IT pending bit possible values
+  * Values are coded in 0xXY format where
+  * X: the register index
+  *    X = 00:  EXTI_SR1
+  *    X = 01:  EXTI_SR2
+  * Y: the IT pending bit mask
+  * @{
+  */
+typedef enum
+{
+  EXTI_IT_Pin0    = (uint16_t)0x0001, /*!< GPIO Pin pos 0 */
+  EXTI_IT_Pin1    = (uint16_t)0x0002, /*!< GPIO Pin pos 1 */
+  EXTI_IT_Pin2    = (uint16_t)0x0004, /*!< GPIO Pin pos 2 */
+  EXTI_IT_Pin3    = (uint16_t)0x0008, /*!< GPIO Pin pos 3 */
+  EXTI_IT_Pin4    = (uint16_t)0x0010, /*!< GPIO Pin pos 4 */
+  EXTI_IT_Pin5    = (uint16_t)0x0020, /*!< GPIO Pin pos 5 */
+  EXTI_IT_Pin6    = (uint16_t)0x0040, /*!< GPIO Pin pos 6 */
+  EXTI_IT_Pin7    = (uint16_t)0x0080, /*!< GPIO Pin pos 7 */
+  EXTI_IT_PortB   = (uint16_t)0x0101, /*!< GPIO Port B    */
+  EXTI_IT_PortD   = (uint16_t)0x0102, /*!< GPIO Port D    */
+  EXTI_IT_PortE   = (uint16_t)0x0104, /*!< GPIO Port E    */
+  EXTI_IT_PortF   = (uint16_t)0x0108, /*!< GPIO Port F    */
+  EXTI_IT_PortG   = (uint16_t)0x0110, /*!< GPIO Port G    */
+  EXTI_IT_PortH   = (uint16_t)0x0120  /*!< GPIO Port H    */
+} EXTI_IT_TypeDef;
+
+
 #define     __IO    volatile         /*!< defines 'read / write' permissions  */
 
 typedef enum {
@@ -32,6 +81,48 @@ typedef enum {
 #define _MEM_(mem_addr)                 (*(volatile uint8_t *)(mem_addr))
 #define _SFR_(mem_addr)                 (*(volatile uint8_t *)(0x5000 + (mem_addr)))
 #define _SFR16_(mem_addr)               (*(volatile uint16_t *)(0x5000 + (mem_addr)))
+
+typedef enum
+{
+  EXTI_Trigger_Falling_Low    = (uint8_t)0x00, /*!< Interrupt on Falling edge and Low level */
+  EXTI_Trigger_Rising         = (uint8_t)0x01, /*!< Interrupt on Rising edge only */
+  EXTI_Trigger_Falling        = (uint8_t)0x02, /*!< Interrupt on Falling edge only */
+  EXTI_Trigger_Rising_Falling = (uint8_t)0x03  /*!< Interrupt on Rising and Falling edges */
+} EXTI_Trigger_TypeDef;
+
+typedef enum
+{
+  EXTI_Pin_0 = (uint8_t)0x00, /*!< GPIO Pin 0 */
+  EXTI_Pin_1 = (uint8_t)0x02, /*!< GPIO Pin 1 */
+  EXTI_Pin_2 = (uint8_t)0x04, /*!< GPIO Pin 2 */
+  EXTI_Pin_3 = (uint8_t)0x06, /*!< GPIO Pin 3 */
+  EXTI_Pin_4 = (uint8_t)0x10, /*!< GPIO Pin 4 */
+  EXTI_Pin_5 = (uint8_t)0x12, /*!< GPIO Pin 5 */
+  EXTI_Pin_6 = (uint8_t)0x14, /*!< GPIO Pin 6 */
+  EXTI_Pin_7 = (uint8_t)0x16  /*!< GPIO Pin 7 */
+} EXTI_Pin_TypeDef;
+
+/** @addtogroup EXTI_Registers_Bits_Definition
+  * @{
+  */
+/* CR1 */
+#define EXTI_CR1_P3IS      ((uint8_t)0xC0) /*!< EXTI Pin 3 external interrupt sensitivity bit Mask */
+#define EXTI_CR1_P2IS      ((uint8_t)0x30) /*!< EXTI Pin 2 external interrupt sensitivity bit Mask */
+#define EXTI_CR1_P1IS      ((uint8_t)0x0C) /*!< EXTI Pin 1  external interrupt sensitivity bit Mask */
+#define EXTI_CR1_P0IS      ((uint8_t)0x03) /*!< EXTI Pin 0 external interrupt sensitivity bit Mask */
+
+/* CR2 */
+#define EXTI_CR2_P7IS      ((uint8_t)0xC0) /*!< EXTI Pin 7 external interrupt sensitivity bit Mask */
+#define EXTI_CR2_P6IS      ((uint8_t)0x30) /*!< EXTI Pin 6 external interrupt sensitivity bit Mask */
+#define EXTI_CR2_P5IS      ((uint8_t)0x0C) /*!< EXTI Pin 5  external interrupt sensitivity bit Mask */
+#define EXTI_CR2_P4IS      ((uint8_t)0x03) /*!< EXTI Pin 4 external interrupt sensitivity bit Mask */
+
+/* CR3 */
+#define EXTI_CR3_PBIS      ((uint8_t)0x03) /*!< EXTI PORTB external interrupt sensitivity bits Mask */
+#define EXTI_CR3_PDIS      ((uint8_t)0x0C) /*!< EXTI PORTD external interrupt sensitivity bits Mask */
+#define EXTI_CR3_PEIS      ((uint8_t)0x30) /*!< EXTI PORTE external interrupt sensitivity bits Mask */
+#define EXTI_CR3_PFIS      ((uint8_t)0xC0) /*!< EXTI PORTF external interrupt sensitivity bits Mask */
+
 
 /* PORT A */
 #define PA_ODR                          _SFR_(0x00)

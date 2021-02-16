@@ -12,6 +12,7 @@
 #define F_CPU 2000000UL
 #endif
 
+#ifdef USE_UART1
 /**
  * Initialize UART1.
  * Mode: 8-N-1, flow-control: none.
@@ -24,5 +25,6 @@ void uart_init();
 void uart_write(uint8_t data);
 
 uint8_t uart_read();
+#endif
 
 #endif /* UART_H */

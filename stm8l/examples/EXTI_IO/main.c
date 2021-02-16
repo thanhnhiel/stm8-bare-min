@@ -1,0 +1,104 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <stm8l.h>
+#include <uart.h>
+#include <delay.h>
+#include "mpr121.h"
+
+void setup();
+int putchar(int c);
+int getchar();
+void UART_LowLevel_Init(void);
+void I2C_LowLevel_Init(void);
+
+__IO uint8_t pressed = 0;
+
+INTERRUPT_HANDLER(EXTI2_IRQHandler, 10)
+{
+  pressed = 1;
+  /* Cleat Interrupt pending bit */
+  //EXTI_ClearITPendingBit(EXTI_IT_Pin1);
+  EXTI_SR1 = (uint8_t) (EXTI_IT_Pin2);
+}
+
+void main()
+{
+    uint8_t counter = 0;
+    uint8_t id[2];
+
+    setup();
+
+    pressed = 0;
+    mpr121_get_data(id);
+    printf("Touch data:: %d %d\r\n", id[0], id[1]);
+
+    while (1) 
+    {
+        printf("Test, %d\n\r", counter++);
+        delay_ms(500);
+
+        if (pressed == 1) //if (!(PB_IDR & (1<<2)))
+        {
+            pressed = 0;
+            mpr121_get_data(id);
+            printf("Touch data:: %d %d\r\n", id[0], id[1]);
+        }
+    }
+}
+
+void I2C_LowLevel_Init(void)
+{
+  /* Enable the peripheral Clock */
+  CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_I2C1);
+}
+
+void setup()
+{
+    UART_LowLevel_Init();
+    uart_init();
+    printf("MCU Init\r\n");
+
+    //EXTI_SetPinSensitivity(EXTI_Pin_1, EXTI_Trigger_Falling);
+    EXTI_CR1 &=  (uint8_t)(~EXTI_CR1_P1IS);
+    EXTI_CR1 |= (uint8_t)((uint8_t)(EXTI_Trigger_Falling) << EXTI_Pin_2);
+    // Pull up
+    PB_CR1 |= 1 << 2;
+    // Interrupt
+    PB_CR2 |= 1 << 2;
+    enableInterrupts();
+
+    printf("mpr121_setup...");
+    I2C_LowLevel_Init();
+    mpr121_setup();
+    printf("done\r\n");
+}
+
+void UART_LowLevel_Init(void)
+{
+    /*!< USART1 Tx- Rx (PC3- PC2) remapping to PA2- PA3 */
+    SYSCFG_RMPCR1 &= (uint8_t)((uint8_t)((uint8_t)0x011C << 4) | (uint8_t)0x0F);
+    SYSCFG_RMPCR1 |= (uint8_t)((uint16_t)0x011C & (uint16_t)0x00F0);
+
+    /* Enable USART clock */
+    //CLK_PeripheralClockConfig(CLK_Peripheral_USART1, ENABLE);
+      /* Enable the peripheral Clock */
+    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_USART1);
+}
+
+/*
+ * Redirect stdout to UART
+ */
+int putchar(int c) 
+{
+    uart_write(c);
+    return 0;
+}
+
+/*
+ * Redirect stdin to UART
+ */
+int getchar() 
+{
+    return uart_read();
+}

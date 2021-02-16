@@ -1,6 +1,8 @@
 #include "uart.h"
 #include "stm8l.h"
 
+#ifdef USE_UART1
+
 void uart_init() {
     /* round to nearest integer */
     uint16_t div = (F_CPU + BAUDRATE / 2) / BAUDRATE;
@@ -20,3 +22,4 @@ uint8_t uart_read() {
     while (!(USART1_SR & (1 << USART1_SR_RXNE)));
     return USART1_DR;
 }
+#endif
