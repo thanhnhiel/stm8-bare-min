@@ -46,7 +46,7 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
     // count++;
-    // if (count == 100)
+    // if (count == 50)
     // {
     //     count = 0;
     //     PC_ODR ^= (1 << LED_PIN);
@@ -56,12 +56,12 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 
 INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
 {
-    // count++;
-    // if (count == 100)
-    // {
-    //     count = 0;
-    //     PC_ODR ^= (1 << LED_PIN);
-    // }
+    count++;
+    if (count == 50)
+    {
+        count = 0;
+        PC_ODR ^= (1 << LED_PIN);
+    }
 
     //TIM3_ClearITPendingBit(TIM3_IT_UPDATE);
     TIM3_SR1 = (uint8_t)(~TIM3_IT_UPDATE);
@@ -76,8 +76,8 @@ void main()
     BEEP_LSICalibrationConfig(2000000);
     BEEP_Init(BEEP_Frequency_1KHz);
 
-    tim2_init();
-    //tim3_init();
+    //tim2_init();
+    tim3_init();
     //tim4_init();
 
     enableInterrupts();
@@ -119,10 +119,10 @@ void tim3_init()
 
     /* Enables TIM3 peripheral Preload register on ARR */
     //TIM3_ARRPreloadConfig(ENABLE);
-    TIM3_CR1 |= (uint8_t)TIM3_CR1_ARPE;
+    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_ARPE);
 
     //TIM3_Cmd(ENABLE);
-    TIM3_CR1 |= (uint8_t)TIM3_CR1_CEN;
+    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_CEN);
 }
 
 void tim4_init()
