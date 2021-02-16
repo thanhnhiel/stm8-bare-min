@@ -856,6 +856,12 @@ typedef enum
 #define TIM4_PSCR_RESET_VALUE ((uint8_t)0x00)
 #define TIM4_ARR_RESET_VALUE  ((uint8_t)0xFF)
 
+/** TIM4 interrupt sources */
+typedef enum
+{
+  TIM4_IT_UPDATE                     = ((uint8_t)0x01)
+}TIM4_IT_TypeDef;
+
 #define TIM4_CR1                        _SFR_(0x2E0)
 #define TIM4_CR1_ARPE                   7
 #define TIM4_CR1_OPM                    3

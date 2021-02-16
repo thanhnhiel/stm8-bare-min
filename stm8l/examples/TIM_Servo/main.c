@@ -18,27 +18,27 @@ __IO uint8_t tim3_ov = 0;
 
 uint8_t count = 0;
 
-// INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
-// {
-//     count++;
-//     if (count == 100)
-//     {
-//         count = 0;
-//         PC_ODR ^= (1 << LED_PIN);
-//     }
-
-//     TIM4_SR &= ~(1 << TIM4_SR_UIF);
-       //TIM4_SR1 = (u8)(~(1 << TIM4_SR_UIF));
-// }
-
-INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
+INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
 {
     count++;
     if (count == 50)
     {
         count = 0;
         PC_ODR ^= (1 << LED_PIN);
-    } 
+    }
+
+    /* Clear the IT pending Bit */
+    TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
+}
+
+INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
+{
+    // count++;
+    // if (count == 50)
+    // {
+    //     count = 0;
+    //     PC_ODR ^= (1 << LED_PIN);
+    // } 
     //TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
     TIM2_SR1 = (uint8_t)(~TIM2_IT_UPDATE);
 }
@@ -77,8 +77,8 @@ void main()
     BEEP_Init(BEEP_Frequency_1KHz);
 
     //tim2_init();
-    tim3_init();
-    //tim4_init();
+    //tim3_init();
+    tim4_init();
 
     enableInterrupts();
   
@@ -138,7 +138,9 @@ void tim4_init()
      *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
     TIM4_ARR = 77;
 
-    TIM4_IER |= (1 << TIM4_IER_UIE); // Enable Update Interrupt
+    //TIM4_IER |= (1 << TIM4_IER_UIE); // Enable Update Interrupt
+    TIM4_IER |= (uint8_t)TIM4_IT_UPDATE;
+
     TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
 }
 
