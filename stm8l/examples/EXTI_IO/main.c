@@ -47,7 +47,7 @@ void main()
             pressed = 0;
             mpr121_get_data(id);
             printf("Touch data:: %d %d\r\n", id[0], id[1]);
-            if (id[0] !=0 && id[1] !=0) Tone(1, 50);
+            if (id[0] !=0 || id[1] !=0) Tone(1, 50);
         }
     }
 }
