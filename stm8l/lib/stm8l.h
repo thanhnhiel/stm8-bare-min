@@ -546,14 +546,157 @@ typedef enum
 #define USART1_GTR                      _SFR_(0x239)
 #define USART1_PSCR                     _SFR_(0x23A)
 
+
+/** TIM3 interrupt sources */
+typedef enum
+{
+  TIM3_IT_UPDATE                     = ((uint8_t)0x01),
+  TIM3_IT_CC1                        = ((uint8_t)0x02),
+  TIM3_IT_CC2                        = ((uint8_t)0x04)
+} TIM3_IT_TypeDef;
+
+/** TIM3 Prescaler */
+typedef enum
+{
+  TIM3_PRESCALER_1  = ((uint8_t)0x00),
+  TIM3_PRESCALER_2    = ((uint8_t)0x01),
+  TIM3_PRESCALER_4    = ((uint8_t)0x02),
+  TIM3_PRESCALER_8     = ((uint8_t)0x03),
+  TIM3_PRESCALER_16   = ((uint8_t)0x04),
+  TIM3_PRESCALER_32     = ((uint8_t)0x05),
+  TIM3_PRESCALER_64    = ((uint8_t)0x06),
+  TIM3_PRESCALER_128   = ((uint8_t)0x07),
+  TIM3_PRESCALER_256   = ((uint8_t)0x08),
+  TIM3_PRESCALER_512   = ((uint8_t)0x09),
+  TIM3_PRESCALER_1024  = ((uint8_t)0x0A),
+  TIM3_PRESCALER_2048 = ((uint8_t)0x0B),
+  TIM3_PRESCALER_4096   = ((uint8_t)0x0C),
+  TIM3_PRESCALER_8192 = ((uint8_t)0x0D),
+  TIM3_PRESCALER_16384 = ((uint8_t)0x0E),
+  TIM3_PRESCALER_32768 = ((uint8_t)0x0F)
+} TIM3_Prescaler_TypeDef;
+
 /* TIM2 */
+/** TIM2 interrupt sources */
+typedef enum
+{
+  TIM2_IT_UPDATE                     = ((uint8_t)0x01),
+  TIM2_IT_CC1                        = ((uint8_t)0x02),
+  TIM2_IT_CC2                        = ((uint8_t)0x04),
+  TIM2_IT_CC3                        = ((uint8_t)0x08)
+}TIM2_IT_TypeDef;
+
+/** TIM2 Prescaler */
+typedef enum
+{
+  TIM2_PRESCALER_1  = ((uint8_t)0x00),
+  TIM2_PRESCALER_2    = ((uint8_t)0x01),
+  TIM2_PRESCALER_4    = ((uint8_t)0x02),
+  TIM2_PRESCALER_8     = ((uint8_t)0x03),
+  TIM2_PRESCALER_16   = ((uint8_t)0x04),
+  TIM2_PRESCALER_32     = ((uint8_t)0x05),
+  TIM2_PRESCALER_64    = ((uint8_t)0x06),
+  TIM2_PRESCALER_128   = ((uint8_t)0x07),
+  TIM2_PRESCALER_256   = ((uint8_t)0x08),
+  TIM2_PRESCALER_512   = ((uint8_t)0x09),
+  TIM2_PRESCALER_1024  = ((uint8_t)0x0A),
+  TIM2_PRESCALER_2048 = ((uint8_t)0x0B),
+  TIM2_PRESCALER_4096   = ((uint8_t)0x0C),
+  TIM2_PRESCALER_8192 = ((uint8_t)0x0D),
+  TIM2_PRESCALER_16384 = ((uint8_t)0x0E),
+  TIM2_PRESCALER_32768 = ((uint8_t)0x0F)
+}TIM2_Prescaler_TypeDef;
+
+/** TIM2 Output Compare and PWM modes */
+typedef enum
+{
+  TIM2_OCMODE_TIMING     = ((uint8_t)0x00),
+  TIM2_OCMODE_ACTIVE     = ((uint8_t)0x10),
+  TIM2_OCMODE_INACTIVE   = ((uint8_t)0x20),
+  TIM2_OCMODE_TOGGLE     = ((uint8_t)0x30),
+  TIM2_OCMODE_PWM1       = ((uint8_t)0x60),
+  TIM2_OCMODE_PWM2       = ((uint8_t)0x70)
+}TIM2_OCMode_TypeDef;
+
+/** @addtogroup TIM2_Registers_Bits_Definition
+  * @{
+  */
+/*CR1*/
+#define TIM2_CR1_ARPE ((uint8_t)0x80) /*!< Auto-Reload Preload Enable mask. */
+#define TIM2_CR1_OPM  ((uint8_t)0x08) /*!< One Pulse Mode mask. */
+#define TIM2_CR1_URS  ((uint8_t)0x04) /*!< Update Request Source mask. */
+#define TIM2_CR1_UDIS ((uint8_t)0x02) /*!< Update DIsable mask. */
+#define TIM2_CR1_CEN  ((uint8_t)0x01) /*!< Counter Enable mask. */
+/*IER*/
+#define TIM2_IER_CC3IE ((uint8_t)0x08) /*!< Capture/Compare 3 Interrupt Enable mask. */
+#define TIM2_IER_CC2IE ((uint8_t)0x04) /*!< Capture/Compare 2 Interrupt Enable mask. */
+#define TIM2_IER_CC1IE ((uint8_t)0x02) /*!< Capture/Compare 1 Interrupt Enable mask. */
+#define TIM2_IER_UIE   ((uint8_t)0x01) /*!< Update Interrupt Enable mask. */
+/*SR1*/
+#define TIM2_SR1_CC3IF ((uint8_t)0x08) /*!< Capture/Compare 3 Interrupt Flag mask. */
+#define TIM2_SR1_CC2IF ((uint8_t)0x04) /*!< Capture/Compare 2 Interrupt Flag mask. */
+#define TIM2_SR1_CC1IF ((uint8_t)0x02) /*!< Capture/Compare 1 Interrupt Flag mask. */
+#define TIM2_SR1_UIF   ((uint8_t)0x01) /*!< Update Interrupt Flag mask. */
+/*SR2*/
+#define TIM2_SR2_CC3OF ((uint8_t)0x08) /*!< Capture/Compare 3 Overcapture Flag mask. */
+#define TIM2_SR2_CC2OF ((uint8_t)0x04) /*!< Capture/Compare 2 Overcapture Flag mask. */
+#define TIM2_SR2_CC1OF ((uint8_t)0x02) /*!< Capture/Compare 1 Overcapture Flag mask. */
+/*EGR*/
+#define TIM2_EGR_CC3G  ((uint8_t)0x08) /*!< Capture/Compare 3 Generation mask. */
+#define TIM2_EGR_CC2G  ((uint8_t)0x04) /*!< Capture/Compare 2 Generation mask. */
+#define TIM2_EGR_CC1G  ((uint8_t)0x02) /*!< Capture/Compare 1 Generation mask. */
+#define TIM2_EGR_UG    ((uint8_t)0x01) /*!< Update Generation mask. */
+/*CCMR*/
+#define TIM2_CCMR_ICxPSC ((uint8_t)0x0C) /*!< Input Capture x Prescaler mask. */
+#define TIM2_CCMR_ICxF   ((uint8_t)0xF0) /*!< Input Capture x Filter mask. */
+#define TIM2_CCMR_OCM    ((uint8_t)0x70) /*!< Output Compare x Mode mask. */
+#define TIM2_CCMR_OCxPE  ((uint8_t)0x08) /*!< Output Compare x Preload Enable mask. */
+#define TIM2_CCMR_CCxS   ((uint8_t)0x03) /*!< Capture/Compare x Selection mask. */
+/*CCER1*/
+#define TIM2_CCER1_CC2P ((uint8_t)0x20) /*!< Capture/Compare 2 output Polarity mask. */
+#define TIM2_CCER1_CC2E ((uint8_t)0x10) /*!< Capture/Compare 2 output enable mask. */
+#define TIM2_CCER1_CC1P ((uint8_t)0x02) /*!< Capture/Compare 1 output Polarity mask. */
+#define TIM2_CCER1_CC1E ((uint8_t)0x01) /*!< Capture/Compare 1 output enable mask. */
+/*CCER2*/
+#define TIM2_CCER2_CC3P ((uint8_t)0x02) /*!< Capture/Compare 3 output Polarity mask. */
+#define TIM2_CCER2_CC3E ((uint8_t)0x01) /*!< Capture/Compare 3 output enable mask. */
+/*CNTR*/
+#define TIM2_CNTRH_CNT ((uint8_t)0xFF) /*!< Counter Value (MSB) mask. */
+#define TIM2_CNTRL_CNT ((uint8_t)0xFF) /*!< Counter Value (LSB) mask. */
+/*PSCR*/
+#define TIM2_PSCR_PSC ((uint8_t)0xFF) /*!< Prescaler Value (MSB) mask. */
+/*ARR*/
+#define TIM2_ARRH_ARR ((uint8_t)0xFF) /*!< Autoreload Value (MSB) mask. */
+#define TIM2_ARRL_ARR ((uint8_t)0xFF) /*!< Autoreload Value (LSB) mask. */
+/*CCR1*/
+#define TIM2_CCR1H_CCR1 ((uint8_t)0xFF) /*!< Capture/Compare 1 Value (MSB) mask. */
+#define TIM2_CCR1L_CCR1 ((uint8_t)0xFF) /*!< Capture/Compare 1 Value (LSB) mask. */
+/*CCR2*/
+#define TIM2_CCR2H_CCR2 ((uint8_t)0xFF) /*!< Capture/Compare 2 Value (MSB) mask. */
+#define TIM2_CCR2L_CCR2 ((uint8_t)0xFF) /*!< Capture/Compare 2 Value (LSB) mask. */
+/*CCR3*/
+#define TIM2_CCR3H_CCR3 ((uint8_t)0xFF) /*!< Capture/Compare 3 Value (MSB) mask. */
+#define TIM2_CCR3L_CCR3 ((uint8_t)0xFF) /*!< Capture/Compare 3 Value (LSB) mask. */
+
+typedef enum
+{
+  TIM2_OUTPUTSTATE_DISABLE           = ((uint8_t)0x00),
+  TIM2_OUTPUTSTATE_ENABLE            = ((uint8_t)0x11)
+}TIM2_OutputState_TypeDef;
+
+typedef enum
+{
+  TIM2_OCPOLARITY_HIGH               = ((uint8_t)0x00),
+  TIM2_OCPOLARITY_LOW                = ((uint8_t)0x22)
+}TIM2_OCPolarity_TypeDef;
+
 #define TIM2_CR1                        _SFR_(0x250)
-#define TIM2_CR1_ARPE                   7
-#define TIM2_CR1_DIR                    6
-#define TIM2_CR1_OPM                    3
-#define TIM2_CR1_URS                    2
-#define TIM2_CR1_UDIS                   1
-#define TIM2_CR1_CEN                    0
+// #define TIM2_CR1_ARPE                   7
+// #define TIM2_CR1_DIR                    6
+// #define TIM2_CR1_OPM                    3
+// #define TIM2_CR1_URS                    2
+// #define TIM2_CR1_UDIS                   1
+// #define TIM2_CR1_CEN                    0
 #define TIM2_CR2                        _SFR_(0x251)
 #define TIM2_SMCR                       _SFR_(0x252)
 #define TIM2_ETR                        _SFR_(0x253)
@@ -562,11 +705,11 @@ typedef enum
 #define TIM2_SR1                        _SFR_(0x256)
 #define TIM2_SR2                        _SFR_(0x257)
 #define TIM2_EGR                        _SFR_(0x258)
-#define TIM2_EGR_BG                     7
-#define TIM2_EGR_TG                     6
-#define TIM2_EGR_CC2G                   2
-#define TIM2_EGR_CC1G                   1
-#define TIM2_EGR_UG                     0
+// #define TIM2_EGR_BG                     7
+// #define TIM2_EGR_TG                     6
+// #define TIM2_EGR_CC2G                   2
+// #define TIM2_EGR_CC1G                   1
+// #define TIM2_EGR_UG                     0
 #define TIM2_CCMR1                      _SFR_(0x259)
 #define TIM2_CCMR2                      _SFR_(0x25A)
 #define TIM2_CCER1                      _SFR_(0x25B)
@@ -585,6 +728,28 @@ typedef enum
 #define TIM2_OISR                       _SFR_(0x266)
 
 /* TIM3 */
+/** @addtogroup TIM3_Registers_Reset_Value
+  * @{
+  */
+
+#define TIM3_CR1_RESET_VALUE   ((uint8_t)0x00)
+#define TIM3_IER_RESET_VALUE   ((uint8_t)0x00)
+#define TIM3_SR1_RESET_VALUE   ((uint8_t)0x00)
+#define TIM3_SR2_RESET_VALUE   ((uint8_t)0x00)
+#define TIM3_EGR_RESET_VALUE   ((uint8_t)0x00)
+#define TIM3_CCMR1_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CCMR2_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CCER1_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CNTRH_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CNTRL_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_PSCR_RESET_VALUE  ((uint8_t)0x00)
+#define TIM3_ARRH_RESET_VALUE  ((uint8_t)0xFF)
+#define TIM3_ARRL_RESET_VALUE  ((uint8_t)0xFF)
+#define TIM3_CCR1H_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CCR1L_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CCR2H_RESET_VALUE ((uint8_t)0x00)
+#define TIM3_CCR2L_RESET_VALUE ((uint8_t)0x00)
+
 #define TIM3_CR1                        _SFR_(0x280)
 #define TIM3_CR1_ARPE                   7
 #define TIM3_CR1_CMS1                   6
@@ -679,6 +844,18 @@ typedef enum
 #define TIM1_DMA1R                      _SFR_(0x2D3)
 
 /* TIM4 */
+
+/** @addtogroup TIM4_Registers_Reset_Value
+  * @{
+  */
+#define TIM4_CR1_RESET_VALUE  ((uint8_t)0x00)
+#define TIM4_IER_RESET_VALUE  ((uint8_t)0x00)
+#define TIM4_SR1_RESET_VALUE  ((uint8_t)0x00)
+#define TIM4_EGR_RESET_VALUE  ((uint8_t)0x00)
+#define TIM4_CNTR_RESET_VALUE ((uint8_t)0x00)
+#define TIM4_PSCR_RESET_VALUE ((uint8_t)0x00)
+#define TIM4_ARR_RESET_VALUE  ((uint8_t)0xFF)
+
 #define TIM4_CR1                        _SFR_(0x2E0)
 #define TIM4_CR1_ARPE                   7
 #define TIM4_CR1_OPM                    3
