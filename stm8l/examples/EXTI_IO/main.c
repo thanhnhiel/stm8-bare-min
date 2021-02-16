@@ -5,12 +5,14 @@
 #include <uart.h>
 #include <delay.h>
 #include "mpr121.h"
+#include <beep.h>
 
 void setup();
 int putchar(int c);
 int getchar();
 void UART_LowLevel_Init(void);
 void I2C_LowLevel_Init(void);
+void Tone(uint8_t times, uint16_t t);
 
 __IO uint8_t pressed = 0;
 
@@ -33,16 +35,19 @@ void main()
     mpr121_get_data(id);
     printf("Touch data:: %d %d\r\n", id[0], id[1]);
 
+    Tone(3, 50);
+
     while (1) 
     {
-        printf("Test, %d\n\r", counter++);
-        delay_ms(500);
+        //printf("Test, %d\n\r", counter++);
+        //delay_ms(500);
 
         if (pressed == 1) //if (!(PB_IDR & (1<<2)))
         {
             pressed = 0;
             mpr121_get_data(id);
             printf("Touch data:: %d %d\r\n", id[0], id[1]);
+            if (id[0] !=0 && id[1] !=0) Tone(1, 50);
         }
     }
 }
@@ -53,8 +58,26 @@ void I2C_LowLevel_Init(void)
   CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_I2C1);
 }
 
+void Tone(uint8_t times, uint16_t t)
+{
+    for (uint8_t i=0; i<times; i++)
+    {
+        if (i!=0) delay_ms(t);
+        BEEP_Cmd(ENABLE);
+        delay_ms(t);
+        BEEP_Cmd(DISABLE);
+    }
+}
+
 void setup()
 {
+    /* Init Beep driver */
+    CLK_PCKENR1 |= (uint8_t)(1 << CLK_Peripheral1_BEEP);
+    BEEP_LSICalibrationConfig(2000000);
+    BEEP_Init(BEEP_Frequency_1KHz);
+    Tone(1, 200);
+
+    /* Init Uart */
     UART_LowLevel_Init();
     uart_init();
     printf("MCU Init\r\n");
@@ -68,10 +91,12 @@ void setup()
     PB_CR2 |= 1 << 2;
     enableInterrupts();
 
+
     printf("mpr121_setup...");
     I2C_LowLevel_Init();
     mpr121_setup();
     printf("done\r\n");
+
 }
 
 void UART_LowLevel_Init(void)
