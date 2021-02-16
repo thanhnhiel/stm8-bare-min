@@ -47,7 +47,47 @@ void main()
             pressed = 0;
             mpr121_get_data(id);
             printf("Touch data:: %d %d\r\n", id[0], id[1]);
-            if (id[0] !=0 || id[1] !=0) Tone(1, 50);
+            if (!(id[0] == 0 && id[1]==0))
+            {
+                if (id[0]==16 && id[1] == 0)
+                {
+                    counter = 1;
+                    Tone(1, 50);
+                    printf("2\r\n");
+                }
+                else if (counter==1 && id[0]==0 && id[1] == 2)
+                {
+                    counter++;
+                     Tone(1, 50);
+                     printf("4\r\n");
+                }
+                else if (counter==2 && id[0]==64 && id[1] == 0)
+                {
+                    counter++;
+                     Tone(1, 50);
+                     printf("8\r\n");
+                }
+                else if (counter==3 && id[0]==2 && id[1] == 0)
+                {
+                    counter++;
+                     Tone(1, 50);
+                     printf("6\r\n");
+                }
+                else if (counter==4 && id[0]==8 && id[1] == 0)
+                {
+                    counter = 0;
+                    Tone(1, 50);
+                    delay_ms(1000);
+                    Tone(3, 100);
+                    printf("End\r\n");
+                } 
+                else
+                {
+                    counter = 0;
+                    Tone(1, 50);
+                }
+             
+            }
         }
     }
 }
