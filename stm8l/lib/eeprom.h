@@ -1,7 +1,7 @@
 #ifndef EEPROM_H
 #define EEPROM_H
 
-#include "stm8s.h"
+#include "stm8l.h"
 
 #define EEPROM_START_ADDR      0x4000
 #define EEPROM_END_ADDR        0x407F

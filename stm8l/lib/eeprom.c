@@ -8,7 +8,7 @@ void eeprom_unlock() {
 
 void option_bytes_unlock() {
     FLASH_CR2 |= (1 << FLASH_CR2_OPT);
-    FLASH_NCR2 &= ~(1 << FLASH_NCR2_NOPT);
+    //FLASH_NCR2 &= ~(1 << FLASH_NCR2_NOPT);
 }
 
 void eeprom_lock() {

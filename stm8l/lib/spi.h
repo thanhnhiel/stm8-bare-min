@@ -1,5 +1,5 @@
-#ifndef SPI_H
-#define SPI_H
+#ifndef SPI1_H
+#define SPI1_H
 
 #include <stdint.h>
 
@@ -12,11 +12,11 @@
  * MISO -> PC7
  * CS   -> user defined
  */
-void SPI_init();
+void SPI1_init();
 
-void SPI_write(uint8_t data);
+void SPI1_write(uint8_t data);
 
-uint8_t SPI_read();
+uint8_t SPI1_read();
 
-#endif /* SPI_H */
+#endif /* SPI1_H */
 
