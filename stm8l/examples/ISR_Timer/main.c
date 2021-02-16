@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <stm8s.h>
+#include <stm8l.h>
 #include <delay.h>
 
 #define OUTPUT_PIN      3

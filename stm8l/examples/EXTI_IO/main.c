@@ -16,7 +16,7 @@ void Tone(uint8_t times, uint16_t t);
 
 __IO uint8_t pressed = 0;
 
-INTERRUPT_HANDLER(EXTI2_IRQHandler, 10)
+INTERRUPT_HANDLER(EXTI2_IRQHandler, EXTI2_ISR)
 {
   pressed = 1;
   /* Cleat Interrupt pending bit */
