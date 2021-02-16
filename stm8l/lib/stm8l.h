@@ -555,6 +555,13 @@ typedef enum
   TIM3_IT_CC2                        = ((uint8_t)0x04)
 } TIM3_IT_TypeDef;
 
+/*CCMR*/
+#define TIM3_CCMR_ICxPSC ((uint8_t)0x0C) /*!< Input Capture x Prescaler mask. */
+#define TIM3_CCMR_ICxF   ((uint8_t)0xF0) /*!< Input Capture x Filter mask. */
+#define TIM3_CCMR_OCM    ((uint8_t)0x70) /*!< Output Compare x Mode mask. */
+#define TIM3_CCMR_OCxPE  ((uint8_t)0x08) /*!< Output Compare x Preload Enable mask. */
+#define TIM3_CCMR_CCxS   ((uint8_t)0x03) /*!< Capture/Compare x Selection mask. */
+
 /** TIM3 Prescaler */
 typedef enum
 {
@@ -690,6 +697,12 @@ typedef enum
   TIM2_OCPOLARITY_LOW                = ((uint8_t)0x22)
 }TIM2_OCPolarity_TypeDef;
 
+typedef enum
+{
+  TIM2_FORCEDACTION_ACTIVE           = ((uint8_t)0x50),
+  TIM2_FORCEDACTION_INACTIVE         = ((uint8_t)0x40)
+}TIM2_ForcedAction_TypeDef;
+
 #define TIM2_CR1                        _SFR_(0x250)
 // #define TIM2_CR1_ARPE                   7
 // #define TIM2_CR1_DIR                    6
@@ -725,30 +738,40 @@ typedef enum
 #define TIM2_CCR2H                      _SFR_(0x263)
 #define TIM2_CCR2L                      _SFR_(0x264)
 #define TIM2_BKR                        _SFR_(0x265)
+#define TIM_BKR_MOE      ((uint8_t)0x80) /*!< Main Output Enable Mask. */
 #define TIM2_OISR                       _SFR_(0x266)
 
 /* TIM3 */
-/** @addtogroup TIM3_Registers_Reset_Value
-  * @{
-  */
+/** TIM3 Output Compare Polarity */
+typedef enum
+{
+  TIM3_OCPOLARITY_HIGH               = ((uint8_t)0x00),
+  TIM3_OCPOLARITY_LOW                = ((uint8_t)0x22)
+} TIM3_OCPolarity_TypeDef;
 
-#define TIM3_CR1_RESET_VALUE   ((uint8_t)0x00)
-#define TIM3_IER_RESET_VALUE   ((uint8_t)0x00)
-#define TIM3_SR1_RESET_VALUE   ((uint8_t)0x00)
-#define TIM3_SR2_RESET_VALUE   ((uint8_t)0x00)
-#define TIM3_EGR_RESET_VALUE   ((uint8_t)0x00)
-#define TIM3_CCMR1_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CCMR2_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CCER1_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CNTRH_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CNTRL_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_PSCR_RESET_VALUE  ((uint8_t)0x00)
-#define TIM3_ARRH_RESET_VALUE  ((uint8_t)0xFF)
-#define TIM3_ARRL_RESET_VALUE  ((uint8_t)0xFF)
-#define TIM3_CCR1H_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CCR1L_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CCR2H_RESET_VALUE ((uint8_t)0x00)
-#define TIM3_CCR2L_RESET_VALUE ((uint8_t)0x00)
+/** TIM3 Output Compare states */
+typedef enum
+{
+  TIM3_OUTPUTSTATE_DISABLE           = ((uint8_t)0x00),
+  TIM3_OUTPUTSTATE_ENABLE            = ((uint8_t)0x11)
+} TIM3_OutputState_TypeDef;
+
+/** TIM3 Output Compare and PWM modes */
+typedef enum
+{
+  TIM3_OCMODE_TIMING     = ((uint8_t)0x00),
+  TIM3_OCMODE_ACTIVE     = ((uint8_t)0x10),
+  TIM3_OCMODE_INACTIVE   = ((uint8_t)0x20),
+  TIM3_OCMODE_TOGGLE     = ((uint8_t)0x30),
+  TIM3_OCMODE_PWM1       = ((uint8_t)0x60),
+  TIM3_OCMODE_PWM2       = ((uint8_t)0x70)
+} TIM3_OCMode_TypeDef;
+
+/*CCER1*/
+#define TIM3_CCER1_CC2P ((uint8_t)0x20) /*!< Capture/Compare 2 output Polarity mask. */
+#define TIM3_CCER1_CC2E ((uint8_t)0x10) /*!< Capture/Compare 2 output enable mask. */
+#define TIM3_CCER1_CC1P ((uint8_t)0x02) /*!< Capture/Compare 1 output Polarity mask. */
+#define TIM3_CCER1_CC1E ((uint8_t)0x01) /*!< Capture/Compare 1 output enable mask. */
 
 #define TIM3_CR1                        _SFR_(0x280)
 #define TIM3_CR1_ARPE                   7

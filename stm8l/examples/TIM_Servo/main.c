@@ -25,6 +25,7 @@ INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR)
     {
         count = 0;
         PC_ODR ^= (1 << LED_PIN);
+   
     }
 
     /* Clear the IT pending Bit */
@@ -40,6 +41,17 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
     //     PC_ODR ^= (1 << LED_PIN);
     // } 
     //TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
+    PC_ODR ^= (1 << LED_PIN);
+
+    // if (PC_ODR & (1 << LED_PIN))
+    // {
+    //     TIM2_CCMR1  =  (uint8_t)((TIM2_CCMR1 & (uint8_t)(~TIM2_CCMR_OCM))  | (uint8_t)TIM2_FORCEDACTION_ACTIVE);
+    // }
+    // else
+    // {
+    //     TIM2_CCMR1  =  (uint8_t)((TIM2_CCMR1 & (uint8_t)(~TIM2_CCMR_OCM))  | (uint8_t)TIM2_FORCEDACTION_INACTIVE);
+    // }
+
     TIM2_SR1 = (uint8_t)(~TIM2_IT_UPDATE);
 }
 
@@ -51,17 +63,19 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
     //     count = 0;
     //     PC_ODR ^= (1 << LED_PIN);
     // }
+    //PC_ODR ^= (1 << LED_PIN);
+
     TIM3_SR1 = (uint8_t)(~TIM3_IT_CC1);
 }
 
 INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
 {
-    count++;
-    if (count == 50)
-    {
-        count = 0;
-        PC_ODR ^= (1 << LED_PIN);
-    }
+    // count++;
+    // if (count == 50)
+    // {
+    //     count = 0;
+      //   PC_ODR ^= (1 << LED_PIN);
+    // }
 
     //TIM3_ClearITPendingBit(TIM3_IT_UPDATE);
     TIM3_SR1 = (uint8_t)(~TIM3_IT_UPDATE);
@@ -72,58 +86,25 @@ void main()
     PC_DDR |= (1 << LED_PIN);
     PC_CR1 |= (1 << LED_PIN);
 
+    // Beep - PA0
     CLK_PCKENR1 |= (uint8_t)(1 << CLK_Peripheral1_BEEP);
     BEEP_LSICalibrationConfig(2000000);
     BEEP_Init(BEEP_Frequency_1KHz);
 
-    //tim2_init();
+    tim2_init();
     //tim3_init();
-    tim4_init();
+    //tim4_init();
 
     enableInterrupts();
-  
+
+
     while (1) 
     {
         //PC_ODR ^= (1 << LED_PIN);
         //delay_ms(2000);
-       // PC_ODR &= ~(1 << LED_PIN);
     }
 }
 
-// void TIM4_DeInit(void)
-// {
-//     TIM4_CR1 = TIM4_CR1_RESET_VALUE;
-//     TIM4_IER = TIM4_IER_RESET_VALUE;
-//     TIM4_CNTR = TIM4_CNTR_RESET_VALUE;
-//     TIM4_PSCR = TIM4_PSCR_RESET_VALUE;
-//     TIM4_ARR = TIM4_ARR_RESET_VALUE;
-//     TIM4_SR = TIM4_SR1_RESET_VALUE;
-// }
-
-void tim3_init()
-{
-    TIM3_DeInit();
-    /* Enable the peripheral Clock */
-    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM3);
-    /* Set TIM3 Frequency to 2Mhz */ 
-    //TIM3_TimeBaseInit(TIM3_PRESCALER_1, 40000); //update every 20ms (50Hz) the duty cycle
-    /* Set the Prescaler value */
-    TIM3_PSCR = (uint8_t)(TIM3_PRESCALER_1);
-    /* Set the Autoreload value */
-    TIM3_ARRH = (uint8_t)(40000 >> 8);
-    TIM3_ARRL = (uint8_t)(40000);
-    
-    /* Enable TIM3 */
-    //TIM3_ITConfig(TIM3_IT_UPDATE ,ENABLE);
-    TIM3_IER |= (uint8_t)TIM3_IT_UPDATE;
-
-    /* Enables TIM3 peripheral Preload register on ARR */
-    //TIM3_ARRPreloadConfig(ENABLE);
-    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_ARPE);
-
-    //TIM3_Cmd(ENABLE);
-    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_CEN);
-}
 
 void tim4_init()
 {
@@ -144,8 +125,82 @@ void tim4_init()
     TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
 }
 
+void tim3_init()
+{
+    /* REMAP_Pin_TIM3Channel1: TIM3 Channel 1 (PB1) remapping to PI0 
+     * REMAP_Pin_TIM3Channel2: TIM3 Channel 2 (PD0) remapping to PI3 
+     */
+    // 0b1110 0000
+	//GPIO_Init(GPIOD, GPIO_Pin_1, GPIO_MODE_OUT_PP_LOW_FAST);
+    /* Clear Data */
+    PB_ODR &= (uint8_t)(~(1 << 1));
+    /* Set Output mode */
+    PB_DDR |= (uint8_t)(1 << 1);
+    /* Push-Pull/Open-Drain (Output) modes selection */
+    PB_CR1 |= (uint8_t)(1 << 1);
+    /* Slow slope */
+    PB_CR2 |= (uint8_t)(1 << 1);
+
+    /* Enable the peripheral Clock */
+    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM3);
+    /* Set TIM3 Frequency to 2Mhz */ 
+    //TIM3_TimeBaseInit(TIM3_PRESCALER_1, 40000); //update every 20ms (50Hz) the duty cycle
+    /* Set the Prescaler value */
+    TIM3_PSCR = (uint8_t)(TIM3_PRESCALER_1);
+    /* Set the Autoreload value */
+    TIM3_ARRH = (uint8_t)(40000 >> 8);
+    TIM3_ARRL = (uint8_t)(40000);
+
+    /* Channel 1 PWM configuration - PB1 */ 
+    //TIM3_OC1Init(TIM3_OCMODE_PWM1, TIM3_OUTPUTSTATE_ENABLE, ppm, TIM3_OCPOLARITY_HIGH);
+    /* Disable the Channel 1: Reset the CCE Bit, Set the Output State , the Output Polarity */
+    TIM3_CCER1 &= (uint8_t)(~( TIM3_CCER1_CC1E | TIM3_CCER1_CC1P));
+    /* Set the Output State &  Set the Output Polarity  */
+    TIM3_CCER1 |= (uint8_t)((TIM3_OUTPUTSTATE_ENABLE & TIM3_CCER1_CC1E) | (TIM3_OCPOLARITY_HIGH & TIM3_CCER1_CC1P));
+
+    /* Reset the Output Compare Bits & Set the Output Compare Mode */
+    TIM3_CCMR1 = (uint8_t)((TIM3_CCMR1 & (uint8_t)(~TIM3_CCMR_OCM)) | (uint8_t)TIM3_OCMODE_PWM1);
+
+    /* Set the Pulse value */
+    uint16_t ppm2 = 2000;
+    TIM3_CCR1H = (uint8_t)(ppm2 >> 8);
+    TIM3_CCR1L = (uint8_t)(ppm2);
+
+    /* Enable TIM3 */
+    //TIM3_ITConfig(TIM3_IT_UPDATE ,ENABLE);
+    TIM3_IER |= (uint8_t)TIM3_IT_UPDATE;
+
+    //TIM3_OC1PreloadConfig(ENABLE);
+    TIM3_CCMR1 |= (uint8_t)TIM3_CCMR_OCxPE;
+
+    /* Enables TIM3 peripheral Preload register on ARR */
+    //TIM3_ARRPreloadConfig(ENABLE);
+    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_ARPE);
+
+    //TIM3_Cmd(ENABLE);
+    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_CEN);
+
+    /* TIM2_Ctrl PWM Outputs */
+    TIM3_BKR |= TIM_BKR_MOE;
+}
+
+
 void tim2_init()
 {
+    /* REMAP_Pin_TIM2Channel1: TIM2 Channel 1 (PB0) remapping to PC5
+     * REMAP_Pin_TIM2Channel2: TIM2 Channel 2 (PB2) remapping to PC6
+     */
+    // 0b1110 0000
+	//GPIO_Init(GPIOB, GPIO_Pin_0, GPIO_MODE_OUT_PP_LOW_FAST);
+    /* Clear Data */
+    PB_ODR &= (uint8_t)(~(1 << 0));
+    /* Set Output mode */
+    PB_DDR |= (uint8_t)(1 << 0);
+    /* Push-Pull/Open-Drain (Output) modes selection */
+    PB_CR1 |= (uint8_t)(1 << 0);
+    /* Slow slope */
+    PB_CR2 |= (uint8_t)(1 << 0);
+
     /* Enable the peripheral Clock */
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM2);
 
@@ -160,8 +215,8 @@ void tim2_init()
   
 	/* Channel 1 PWM configuration */ 
     //TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, ppm, TIM2_OCPOLARITY_HIGH);
-    /* Disable the Channel 1: Reset the CCE Bit, Set the Output State , the Output Polarity */
-    TIM2_CCER1 &= (uint8_t)(~( TIM2_CCER1_CC1E | TIM2_CCER1_CC1P));
+    /* Disable the Channel 1 - PB0 : Reset the CCE Bit, Set the Output State , the Output Polarity */
+    TIM2_CCER1 &= (uint8_t)(~( TIM2_CCER1_CC1E | TIM2_CCER1_CC1P)); 
     /* Set the Output State &  Set the Output Polarity  */
     TIM2_CCER1 |= (uint8_t)((TIM2_OUTPUTSTATE_ENABLE  & TIM2_CCER1_CC1E   ) | (TIM2_OCPOLARITY_HIGH   & TIM2_CCER1_CC1P   ));
 
@@ -186,29 +241,7 @@ void tim2_init()
 
     /* Enable TIM2 */
     TIM2_CR1 |= (uint8_t)TIM2_CR1_CEN;
-}
 
-void TIM3_DeInit(void)
-{
-    TIM3_CR1 = (uint8_t)TIM3_CR1_RESET_VALUE;
-    TIM3_IER = (uint8_t)TIM3_IER_RESET_VALUE;
-    TIM3_SR2 = (uint8_t)TIM3_SR2_RESET_VALUE;
-
-    /* Disable channels */
-    TIM3_CCER1 = (uint8_t)TIM3_CCER1_RESET_VALUE;
-
-    /* Then reset channel registers: it also works if lock level is equal to 2 or 3 */
-    TIM3_CCER1 = (uint8_t)TIM3_CCER1_RESET_VALUE;
-    TIM3_CCMR1 = (uint8_t)TIM3_CCMR1_RESET_VALUE;
-    TIM3_CCMR2 = (uint8_t)TIM3_CCMR2_RESET_VALUE;
-    TIM3_CNTRH = (uint8_t)TIM3_CNTRH_RESET_VALUE;
-    TIM3_CNTRL = (uint8_t)TIM3_CNTRL_RESET_VALUE;
-    TIM3_PSCR = (uint8_t)TIM3_PSCR_RESET_VALUE;
-    TIM3_ARRH  = (uint8_t)TIM3_ARRH_RESET_VALUE;
-    TIM3_ARRL  = (uint8_t)TIM3_ARRL_RESET_VALUE;
-    TIM3_CCR1H = (uint8_t)TIM3_CCR1H_RESET_VALUE;
-    TIM3_CCR1L = (uint8_t)TIM3_CCR1L_RESET_VALUE;
-    TIM3_CCR2H = (uint8_t)TIM3_CCR2H_RESET_VALUE;
-    TIM3_CCR2L = (uint8_t)TIM3_CCR2L_RESET_VALUE;
-    TIM3_SR1 = (uint8_t)TIM3_SR1_RESET_VALUE;
+    /* TIM2_Ctrl PWM Outputs */
+    TIM2_BKR |= TIM_BKR_MOE;
 }
