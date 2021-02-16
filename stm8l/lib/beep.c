@@ -50,6 +50,8 @@
 #include "stm8l.h"
 #include "beep.h"
 
+#ifdef USE_BEEP
+
 /** @addtogroup STM8L15x_StdPeriph_Driver
   * @{
   */
@@ -217,6 +219,7 @@ void BEEP_LSICalibrationConfig(uint32_t LSIFreqHz)
     BEEP->CSR2 |= (uint8_t)(A - 1U);
   }
 }
+
 /**
   * @}
   */
@@ -231,5 +234,6 @@ void BEEP_LSICalibrationConfig(uint32_t LSIFreqHz)
 /**
   * @}
   */
+#endif
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

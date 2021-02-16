@@ -33,6 +33,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 
+#ifdef USE_BEEP
 
 /** @addtogroup STM8L15x_StdPeriph_Driver
   * @{
@@ -137,6 +138,7 @@ void BEEP_Cmd(FunctionalState NewState);
 void BEEP_LSClockToTIMConnectCmd(FunctionalState NewState);
 void BEEP_LSICalibrationConfig(uint32_t LSIFreqHz);
 
+#endif
 
 #endif /* __STM8L15x_BEEP_H */
 
