@@ -1,11 +1,14 @@
-export PATH := $(PATH):$(HOME)/sdcc/bin
+export PATH := $(PATH):D:/Projects/stm8/workspace/tools/sduino/tools/STM8Tools/2018.12.07/win
 
-MCU  = stm8s003f3
+MCU  = stm8s103f3
+#MCU  = stm8s003f3
 ARCH = stm8
 
 F_CPU   ?= 1600000
 TARGET  ?= main.ihx
 
+COMPILER  =D:/Projects/stm8/workspace/tools/sduino/tools/sdcc/build.10738/bin
+TOOLS =D:/Projects/stm8/workspace/tools/sduino/tools/STM8Tools/2018.12.07/win
 LIBDIR   = ../../lib
 
 SRCS    := $(wildcard *.c $(LIBDIR)/*.c)
@@ -14,10 +17,11 @@ ASRCS   := $(wildcard *.s $(LIBDIR)/*.s)
 OBJS     = $(SRCS:.c=.rel)
 OBJS    += $(ASRCS:.s=.rel)
 
-CC       = sdcc
-LD       = sdld
-AS       = sdasstm8
-OBJCOPY  = sdobjcopy
+CC       = $(COMPILER)/sdcc
+LD       = $(COMPILER)/sdld
+AS       = $(COMPILER)/sdasstm8
+OBJCOPY  = $(COMPILER)/sdobjcopy
+
 ASFLAGS  = -plosgff
 CFLAGS   = -m$(ARCH) -p$(MCU) --std-sdcc11
 CFLAGS  += -DF_CPU=$(F_CPU)UL -I. -I$(LIBDIR)
@@ -46,7 +50,7 @@ size:
 	@stat -L -c %s $(TARGET).bin
 
 flash: $(TARGET)
-	sudo stm8flash -c stlinkv2 -p $(MCU) -w $(TARGET)
+	$(TOOLS)/stm8flash -c stlinkv2 -p $(MCU) -w $(TARGET)
 
 serial: $(TARGET)
 	stm8gal -p /dev/ttyUSB0 -w $(TARGET)
