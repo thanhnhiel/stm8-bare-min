@@ -62,6 +62,12 @@ void timer_isr() __interrupt(AWU_ISR)
     AWU_GetFlagStatus();
 }
 
+/* 12 bytes */
+volatile uint8_t *getUniqueId()
+{
+    return (volatile uint8_t *)UNIQUE_ID_ADDRESS;
+}
+
 void main() 
 {
     /* HSI Max : 16Mhz */
@@ -90,8 +96,16 @@ void main()
     LED_INIT();
     LED_ON();
 
-   // uart_init();
-   // printf("Mcu Inited\r\n");
+    uart_init();
+
+    volatile uint8_t *id = getUniqueId();
+    printf("Mcu Inited Unique Id: ");
+    for (int i=0;i<12;i++)
+    {
+      printf("%x ", id[i]);  
+    }
+    printf("\r\n");
+    
     delay_ms(4000);
     LED_OFF();
 

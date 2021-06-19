@@ -112,6 +112,10 @@ typedef enum
 #define EXTI_CR3_PDIS      ((uint8_t)0x0C) /*!< EXTI PORTD external interrupt sensitivity bits Mask */
 #define EXTI_CR3_PEIS      ((uint8_t)0x30) /*!< EXTI PORTE external interrupt sensitivity bits Mask */
 #define EXTI_CR3_PFIS      ((uint8_t)0xC0) /*!< EXTI PORTF external interrupt sensitivity bits Mask */
+
+/* UNIQUE ID */
+#define UNIQUE_ID_ADDRESS      (0x4865)
+
 /* PORT A */
 #define PA_BASE_ADDRESS         0x5000
 #define PA_ODR                  _SFR_(PA_BASE_ADDRESS + 0x00)
