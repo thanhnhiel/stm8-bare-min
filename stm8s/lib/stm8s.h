@@ -242,6 +242,11 @@ typedef enum {
 } CLK_Prescaler_TypeDef;
 
 /* Clock */
+#define  CLK_PRESCALER_HSIDIV1  ((uint8_t)0x00)
+#define  CLK_PRESCALER_HSIDIV2  ((uint8_t)0x08) /*!< High speed internal clock prescaler: 2 */
+#define  CLK_PRESCALER_HSIDIV4  ((uint8_t)0x10) /*!< High speed internal clock prescaler: 4 */
+#define  CLK_PRESCALER_HSIDIV8  ((uint8_t)0x18) /*!< High speed internal clock prescaler: 8 */
+
 #define CLK_BASE_ADDRESS        0x50C0
 #define CLK_ICKR                _SFR_(CLK_BASE_ADDRESS + 0x00)
 #define CLK_ICKR_REGAH          5

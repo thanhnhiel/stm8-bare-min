@@ -4,7 +4,8 @@ MCU  = stm8s103f3
 #MCU  = stm8s003f3
 ARCH = stm8
 
-F_CPU   ?= 1600000
+# 2Mhz
+F_CPU   ?= 2000000
 TARGET  ?= main.ihx
 
 COMPILER  =D:/Projects/stm8/workspace/tools/sduino/tools/sdcc/build.10738/bin

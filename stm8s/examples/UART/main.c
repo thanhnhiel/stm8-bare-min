@@ -22,10 +22,19 @@ int getchar() {
 
 void main() {
     uint8_t counter = 0;
-    uart_init();
 
+    /* HSI Max : 16Mhz */
+    CLK_CKDIVR &= (uint8_t)(~CLK_PRESCALER_HSIDIV8); // 16 / 8 = 2MHz
+    CLK_CKDIVR |= (uint8_t)CLK_PRESCALER_HSIDIV8;    
+
+    uart_init();
+    
     while (1) {
-        printf("Test, %d\n", counter++);
-        delay_ms(500);
+        printf("Test, %d\r\n", counter++);
+        delay_ms(1000);
+        if (uart_rx_available())
+        {
+            printf("rx: %c\r\n", getchar());
+        }
     }
 }

@@ -25,4 +25,6 @@ void uart_write(uint8_t data);
 
 uint8_t uart_read();
 
+uint8_t uart_rx_available();
+
 #endif /* UART_H */
