@@ -68,8 +68,28 @@ void main()
     CLK_CKDIVR &= (uint8_t)(~0x18); // 16 / 8 = 2MHz
     CLK_CKDIVR |= (uint8_t)CLK_PRESCALER_HSIDIV8;
 
+
+
+    /* Set Input mode */
+    //PB_DDR &= (uint8_t)(~(GPIO_Pin));
+    /* Pull-Up */
+    //PB_CR1 |= (uint8_t)GPIO_Pin;
+    /* No Interrupt */
+    //PB_CR2 &= (uint8_t)~(GPIO_Pin);
+
+    // Input PU
+    PA_DDR &= (uint8_t)(~(1<<1 | 1<<2 | 1<<3));
+    PA_CR1 |= (uint8_t)(1<<1 | 1<<2 | 1<<3);
+    PB_DDR &= (uint8_t)(~(1<<4 | 1<<5));
+    PB_CR1 |= (uint8_t)(1<<4 | 1<<5);
+    PC_DDR &= (uint8_t)(~(1<<3 | 1<<4 | 1<<5 | 1<<6 | 1<<7 ));
+    PC_CR1 |= (uint8_t)(1<<3 | 1<<4 | 1<<5 | 1<<6 | 1<<7);
+    PD_DDR &= (uint8_t)(~(1<<1 | 1<<2 | 1<<3 | 1<<4 | 1<<5 | 1<<6));
+    PD_CR1 |= (uint8_t)(1<<1 | 1<<2 | 1<<3 | 1<<4 | 1<<5 | 1<<6);
+
     LED_INIT();
     LED_ON();
+
    // uart_init();
    // printf("Mcu Inited\r\n");
     delay_ms(4000);
