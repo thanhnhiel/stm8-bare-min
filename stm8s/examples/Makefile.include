@@ -1,6 +1,6 @@
 export PATH := $(PATH):D:/Projects/stm8/workspace/tools/sduino/tools/STM8Tools/2018.12.07/win
 
-MCU  = stm8s103f3
+MCU ?= stm8s103f3
 #MCU  = stm8s003f3
 ARCH = stm8
 

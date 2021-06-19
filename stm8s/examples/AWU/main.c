@@ -23,15 +23,15 @@
 #define AWU_TIMEBASE_12S    ((uint8_t)15)   /*!< AWU Timebase equals 12 s */
 #define AWU_TIMEBASE_30S    ((uint8_t)16)   /*!< AWU Timebase equals 30 s */
 
-#define LED_PIN     5
+#define LED_PIN     3
 
 #define LED_INIT() { \
-       PB_DDR |= (1 << LED_PIN); \
-       PB_CR1 |= (1 << LED_PIN); \
+       PD_DDR |= (1 << LED_PIN); \
+       PD_CR1 |= (1 << LED_PIN); \
        }
       
-#define LED_ON()  PB_ODR &= ~(1 << LED_PIN)
-#define LED_OFF()  PB_ODR |= (1 << LED_PIN)
+#define LED_OFF()  PD_ODR &= ~(1 << LED_PIN)
+#define LED_ON()  PD_ODR |= (1 << LED_PIN)
 
 uint32_t LSIMeasurment(void);
 void TIM1_ICInit();
@@ -73,9 +73,6 @@ void main()
     /* HSI Max : 16Mhz */
     CLK_CKDIVR &= (uint8_t)(~0x18); // 16 / 8 = 2MHz
     CLK_CKDIVR |= (uint8_t)CLK_PRESCALER_HSIDIV8;
-
-
-
     /* Set Input mode */
     //PB_DDR &= (uint8_t)(~(GPIO_Pin));
     /* Pull-Up */
@@ -96,15 +93,15 @@ void main()
     LED_INIT();
     LED_ON();
 
-    uart_init();
+    // uart_init();
 
-    volatile uint8_t *id = getUniqueId();
-    printf("Mcu Inited Unique Id: ");
-    for (int i=0;i<12;i++)
-    {
-      printf("%x ", id[i]);  
-    }
-    printf("\r\n");
+    // volatile uint8_t *id = getUniqueId();
+    // printf("Mcu Inited Unique Id: ");
+    // for (int i=0;i<12;i++)
+    // {
+    //   printf("%x ", id[i]);  
+    // }
+    // printf("\r\n");
     
     delay_ms(4000);
     LED_OFF();
@@ -112,9 +109,16 @@ void main()
     AWU_Config(AWU_TIMEBASE_12S);
     enableInterrupts();
 
+    /* Turn off LSI */
+    CLK_ICKR &= (uint8_t)(~CLK_ICKR_LSIEN);
+
     while (1) 
     {
+        /* Turn off Main voltage regulator */
+        CLK_ICKR |= (1<<CLK_ICKR_REGAH);
         halt(); /* Program halted */
+        CLK_ICKR &= ~(1<<CLK_ICKR_REGAH);
+
         LED_ON();
         delay_ms(100);
         LED_OFF();
