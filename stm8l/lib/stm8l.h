@@ -23,8 +23,10 @@
  #define wfe()                 __asm__("wfe")    /* wait for event */
  #define halt()                __asm__("halt")   /* halt CPU */
 
-#define DISABLE (0)
-#define ENABLE (1)
+//#define DISABLE (0)
+//#define ENABLE (1)
+typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
+
 
 /** @defgroup EXTI_Interrupts
   *

@@ -8,9 +8,22 @@
 
 void main() 
 {
+    /* HSI clock prescaler */
+    CLK_CKDIVR = CLK_SYSCLKDiv_8;
+
     CLK_PCKENR1 |= (uint8_t)(1 << CLK_Peripheral1_BEEP);
-    BEEP_LSICalibrationConfig(2000000);
+    //CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << 6);
+    
+    /* Enable LSI for BEEP */
+    CLK_CBEEPR |= (1<<CLK_CBEEPR_CLKBEEPSEL0);
+
+    BEEP_LSICalibrationConfig(32000);
     BEEP_Init(BEEP_Frequency_1KHz);
+
+    delay_ms(5000);
+
+    PA_DDR |= (1 << 0); 
+    PA_CR1 |= (1 << 0);
 
     while (1) 
     {
