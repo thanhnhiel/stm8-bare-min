@@ -23,6 +23,9 @@
  #define wfe()                 __asm__("wfe")    /* wait for event */
  #define halt()                __asm__("halt")   /* halt CPU */
 
+#define DISABLE (0)
+#define ENABLE (1)
+
 /** @defgroup EXTI_Interrupts
   *
   * @brief EXTI IT pending bit possible values

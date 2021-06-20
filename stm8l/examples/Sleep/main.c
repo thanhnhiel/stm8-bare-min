@@ -38,7 +38,7 @@ void main()
     /* RTC_WakeUpClockConfig */
     RTC_WakeUpClockConfig(RTC_WakeUpClock_CK_SPRE_16bits);
     /* Enable RTC WUT */
-    RTC_ITConfig(RTC_IT_WUT, 1);
+    RTC_ITConfig(RTC_IT_WUT, ENABLE);
 
     LED_INIT();
     LED_ON();
@@ -68,10 +68,10 @@ void main()
 
         /* RTC will wake-up from halt every 3*2 second*/
         RTC_SetWakeUpCounter(3);
-        RTC_WakeUpCmd(1);
+        RTC_WakeUpCmd(ENABLE);
         /* Enter Halt mode*/
         halt();
-        RTC_WakeUpCmd(0);
+        RTC_WakeUpCmd(DISABLE);
     }
 }
 
