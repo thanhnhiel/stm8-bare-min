@@ -21,11 +21,35 @@ void TIM3_DeInit(void);
 void tim2_init();
 void tim3_init();
 void tim4_init();
+void TIM3_PWMIConfig();
+void tim3Input_init();
+
 __IO uint8_t tim3_ov = 0;
 
 
-
 uint8_t count = 0;
+
+
+void main() 
+{
+    /* HSI clock prescaler */
+    CLK_CKDIVR = CLK_SYSCLKDiv_8;
+    LED_INIT();
+    LED_ON();
+
+    tim2_init();
+    tim3Input_init();
+    //tim4_init();
+
+    enableInterrupts();
+
+
+    while (1) 
+    {
+        //PC_ODR ^= (1 << LED_PIN);
+        //delay_ms(2000);
+    }
+}
 
 INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
 {
@@ -66,15 +90,35 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
-    // count++;
-    // if (count == 50)
-    // {
-    //     count = 0;
-    //     PC_ODR ^= (1 << LED_PIN);
-    // }
-    //PC_ODR ^= (1 << LED_PIN);
+    uint8_t tmpccrl, tmpccrh;
+    uint16_t IC1Value = 0, IC2Value = 0;
+    //volatile uint32_t SignalDutyCycle = 0;
+    //volatile uint32_t SignalFrequency = 0;
 
+    // CLear  TIM3_IT_CC1
     TIM3_SR1 = (uint8_t)(~TIM3_IT_CC1);
+    tmpccrh = TIM3_CCR1H;
+    tmpccrl = TIM3_CCR1L;
+    IC1Value = (uint16_t)(tmpccrl); // Cycle - T
+    IC1Value |= (uint16_t)((uint16_t)tmpccrh << 8);
+
+    if (IC1Value != 0)
+    {
+        /*tmpccrh = TIM3_CCR2H;
+        tmpccrl = TIM3_CCR2L;
+        IC2Value = (uint16_t)(tmpccrl);
+        IC2Value |= (uint16_t)((uint16_t)tmpccrh << 8);*/
+
+        /* Duty cycle computation */
+        //SignalDutyCycle = ((uint32_t) IC2Value * 100) / IC1Value;
+        /* Frequency computation */
+        //SignalFrequency = (uint32_t) (2000000 / IC1Value);
+    }
+    //else
+    //{
+    //    SignalDutyCycle = 0;
+    //    SignalFrequency = 0;
+    //}
 }
 
 INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
@@ -89,32 +133,6 @@ INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
     //TIM3_ClearITPendingBit(TIM3_IT_UPDATE);
     TIM3_SR1 = (uint8_t)(~TIM3_IT_UPDATE);
 }
-
-void main() 
-{
-    LED_INIT();
-
-    LED_INIT();
-
-    // Beep - PA0
-    CLK_PCKENR1 |= (uint8_t)(1 << CLK_Peripheral1_BEEP);
-    //BEEP_LSICalibrationConfig(2000000);
-    //BEEP_Init(BEEP_Frequency_1KHz);
-
-    tim2_init();
-    //tim3_init();
-    //tim4_init();
-
-    enableInterrupts();
-
-
-    while (1) 
-    {
-        //PC_ODR ^= (1 << LED_PIN);
-        //delay_ms(2000);
-    }
-}
-
 
 void tim4_init()
 {
@@ -133,6 +151,86 @@ void tim4_init()
     TIM4_IER |= (uint8_t)TIM4_IT_UPDATE;
 
     TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
+}
+
+void TIM3_PWMIConfig()
+{
+    //   TIM3_ICPolarity_Rising  = ((uint8_t)0x00), /*!< Input Capture on Rising Edge*/
+    //   TIM3_ICPolarity_Falling  = ((uint8_t)0x01)  /*!< Input Capture on Falling Edge*/
+    uint8_t icpolarity = 0x01;
+    
+    //TIM3_ICSelection_DirectTI    = ((uint8_t)0x01), /*!< Input Capture mapped on the direct input*/
+    //TIM3_ICSelection_IndirectTI  = ((uint8_t)0x02), /*!< Input Capture mapped on the indirect input*/
+    //TIM3_ICSelection_TRGI        = ((uint8_t)0x03)  /*!< Input Capture mapped on the Trigger Input*/
+    uint8_t icselection = 0x01;
+    uint8_t tmpccmr1 = TIM3_CCMR1;
+
+    /* TI1 Configuration */
+    //TI1_Config(TIM3_ICPolarity, TIM3_ICSelection, TIM3_ICFilter);
+
+    /* Disable the Channel 1: Reset the CCE Bit TIM_CCER1_CC1E = 0x01 */
+    TIM3_CCER1 &=  (uint8_t)(~0x01);
+
+    /* Select the Input and set the filter - 0x01 TIM3_ICSelection_DirectTI */
+    tmpccmr1 &= (uint8_t)(~0x03) & (uint8_t)(~0xF0);
+    tmpccmr1 |= (uint8_t)(((uint8_t)(0x01)) | ((uint8_t)(0 << 4))); // TIM3_ICFilter = 0
+    TIM3_CCMR1 = tmpccmr1;
+
+    /* Select the Polarity */
+    // TIM_CCER1_CC1E = 0x01, TIM_CCER1_CC1P = 0x02
+    //TIM3_ICPolarity_Falling
+    //TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x01)) | (uint8_t)0x02);
+    //TIM3_ICPolarity_Rising
+    TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x01)) & (uint8_t)~0x02);
+
+    /* Set the CCE Bit TIM_CCER1_CC1E = 0x01 */
+    TIM3_CCER1 |=  0x01;
+
+    /* Set the Input Capture Prescaler value */
+    //TIM3_SetIC1Prescaler(TIM3_ICPSC_DIV1);
+    //TIM3_ICPSC_DIV1  = ((uint8_t)0x00),  /*!< Input Capture Prescaler = 1 (one capture every 1 event) */
+    //TIM3_ICPSC_DIV2  = ((uint8_t)0x04),  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
+    //TIM3_ICPSC_DIV4  = ((uint8_t)0x08),  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
+    //TIM3_ICPSC_DIV8  = ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
+    TIM3_CCMR1 = (uint8_t)((TIM3_CCMR1 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x00);
+
+    /* TI2 Configuration */
+    //TI2_Config((TIM3_ICPolarity_TypeDef)icpolarity, (TIM3_ICSelection_TypeDef)icselection, TIM3_ICFilter);
+    tmpccmr1 = TIM3_CCMR2;
+    /* Disable the Channel 2: Reset the CCE Bit - TIM_CCER1_CC2E */
+    TIM3_CCER1 &=  (uint8_t)(~0x10);
+
+      /* Select the Input and set the filter - TIM3_ICSelection_IndirectTI */
+    tmpccmr1 &= (uint8_t)(~0x03) & (uint8_t)(~0xF0);
+    tmpccmr1 |= (uint8_t)(((uint8_t)(0x02)) | ((uint8_t)(0 << 4)));
+    TIM3_CCMR2 = tmpccmr1;
+
+    /* Select the Polarity */
+    // TIM_CCER1_CC1E = 0x01, TIM_CCER1_CC1P = 0x02
+    //TIM3_ICPolarity_Falling
+    TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x20)) | (uint8_t)0x02);
+    //TIM3_ICPolarity_Rising
+    //TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x20)) & (uint8_t)~0x02);
+
+    /* Set the CCE Bit TIM_CCER1_CC2E */
+    TIM3_CCER1 |=  0x10;
+
+    /* Set the Input Capture Prescaler value */
+    //TIM3_SetIC2Prescaler(TIM3_ICPSC_DIV1);
+    TIM3_CCMR2 = (uint8_t)((TIM3_CCMR2 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x00);
+}
+
+void tim3Input_init()
+{
+    TIM3_PWMIConfig();
+    // TIM3_SelectInputTrigger(TIM3_TRGSelection_TI1FP1 = 0x50);
+    TIM3_SMCR = (uint8_t)((TIM3_SMCR & (uint8_t)(~0x70)) | (uint8_t)0x50);
+    // TIM3_SelectSlaveMode(TIM3_SlaveMode_Reset = 0x04);
+    TIM3_SMCR = (uint8_t)((TIM3_SMCR & (uint8_t)(~0x70)) | (uint8_t)0x04);
+    // TIM3_ITConfig(TIM3_IT_CC1 = 0x02, ENABLE);
+    TIM3_IER |= (uint8_t)(0x02);
+    // TIM3_Cmd(ENABLE);
+    TIM3_CR1 |= 0x01;
 }
 
 void tim3_init()
