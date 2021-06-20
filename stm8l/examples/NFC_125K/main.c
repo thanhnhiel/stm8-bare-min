@@ -4,9 +4,18 @@
 #include <stm8l.h>
 #include "uart.h"
 #include "delay.h"
-#include "beep.h"
+//#include "beep.h"
 
 #define LED_PIN     4
+
+#define LED_INIT() { \
+       PC_DDR |= (1 << LED_PIN); \
+       PC_CR1 |= (1 << LED_PIN); \
+       }
+      
+#define LED_OFF()  PC_ODR &= ~(1 << LED_PIN)
+#define LED_ON()  PC_ODR |= (1 << LED_PIN)
+#define LED_TOGGLE()  PC_ODR ^= (1 << LED_PIN)
 
 void TIM3_DeInit(void);
 void tim2_init();
@@ -41,7 +50,7 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
     //     PC_ODR ^= (1 << LED_PIN);
     // } 
     //TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
-    PC_ODR ^= (1 << LED_PIN);
+    LED_TOGGLE();
 
     // if (PC_ODR & (1 << LED_PIN))
     // {
@@ -83,13 +92,14 @@ INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
 
 void main() 
 {
-    PC_DDR |= (1 << LED_PIN);
-    PC_CR1 |= (1 << LED_PIN);
+    LED_INIT();
+
+    LED_INIT();
 
     // Beep - PA0
     CLK_PCKENR1 |= (uint8_t)(1 << CLK_Peripheral1_BEEP);
-    BEEP_LSICalibrationConfig(2000000);
-    BEEP_Init(BEEP_Frequency_1KHz);
+    //BEEP_LSICalibrationConfig(2000000);
+    //BEEP_Init(BEEP_Frequency_1KHz);
 
     tim2_init();
     //tim3_init();
@@ -205,15 +215,15 @@ void tim2_init()
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM2);
 
     /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
-     *           = 2 MHz / (2 * 128 * (1 + (40000-1))) = 50 Hz */
+     *           = 2 MHz / (2 * 1 * (1 + 15))) = 125K Hz */
     //clock at 2MHz
     /* Set TIM2 Frequency to 2Mhz */ 
     //TIM2_TimeBaseInit(TIM2_PRESCALER_1, 40000);
     /* Set the Prescaler value */
     TIM2_PSCR = (uint8_t)(TIM2_PRESCALER_1);
     /* Set the Autoreload value */
-    TIM2_ARRH = (uint8_t)(40000 >> 8);
-    TIM2_ARRL = (uint8_t)(40000);
+    TIM2_ARRH = (uint8_t)(15 >> 8);
+    TIM2_ARRL = (uint8_t)(15);
   
 	/* Channel 1 PWM configuration */ 
     //TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, ppm, TIM2_OCPOLARITY_HIGH);
@@ -226,7 +236,7 @@ void tim2_init()
     TIM2_CCMR1 = (uint8_t)((TIM2_CCMR1 & (uint8_t)(~TIM2_CCMR_OCM)) | (uint8_t)TIM2_OCMODE_PWM1);
 
     /* Set the Pulse value */
-    uint16_t ppm = 2000;
+    uint16_t ppm = 8;
     TIM2_CCR1H = (uint8_t)(ppm >> 8);
     TIM2_CCR1L = (uint8_t)(ppm);
 

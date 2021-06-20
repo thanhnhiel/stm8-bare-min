@@ -50,7 +50,7 @@
 #include "stm8l.h"
 #include "beep.h"
 
-//#ifdef USE_BEEP
+#ifdef USE_BEEP
 
 /** @addtogroup STM8L15x_StdPeriph_Driver
   * @{
@@ -234,6 +234,6 @@ void BEEP_LSICalibrationConfig(uint32_t LSIFreqHz)
 /**
   * @}
   */
-//#endif
+#endif
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
