@@ -299,6 +299,29 @@ typedef enum
 #define PWR_CSR2_VREFINTF               0
 
 /* Clock */
+#define CLK_SYSCLKDiv_1   ((uint8_t)0x00) /*!< System Clock Divider: 1 */
+#define CLK_SYSCLKDiv_2   ((uint8_t)0x01) /*!< System Clock Divider: 2 */
+#define CLK_SYSCLKDiv_4   ((uint8_t)0x02) /*!< System Clock Divider: 4 */
+#define CLK_SYSCLKDiv_8   ((uint8_t)0x03) /*!< System Clock Divider: 8 */
+#define CLK_SYSCLKDiv_16  ((uint8_t)0x04) /*!< System Clock Divider: 16 */
+#define CLK_SYSCLKDiv_32  ((uint8_t)0x05) /*!< System Clock Divider: 32 */
+#define CLK_SYSCLKDiv_64  ((uint8_t)0x06) /*!< System Clock Divider: 64 */
+#define CLK_SYSCLKDiv_128 ((uint8_t)0x07) /*!< System Clock Divider: 128 */
+
+#define CLK_RTCCLKSource_Off ((uint8_t)0x00) /*!< Clock RTC Off */
+#define CLK_RTCCLKSource_HSI ((uint8_t)0x02) /*!< Clock RTC : HSI */
+#define CLK_RTCCLKSource_LSI ((uint8_t)0x04) /*!< Clock RTC : LSI */
+#define CLK_RTCCLKSource_HSE ((uint8_t)0x08) /*!< Clock RTC : HSE */
+#define CLK_RTCCLKSource_LSE ((uint8_t)0x10) /*!< Clock RTC : LSE */
+
+#define CLK_RTCCLKDiv_1  ((uint8_t)0x00) /*!< Clock RTC Div 1 */
+#define CLK_RTCCLKDiv_2  ((uint8_t)0x20) /*!< Clock RTC Div 2  */
+#define CLK_RTCCLKDiv_4  ((uint8_t)0x40) /*!< Clock RTC Div 4 */
+#define CLK_RTCCLKDiv_8  ((uint8_t)0x60) /*!< Clock RTC Div 8 */
+#define CLK_RTCCLKDiv_16 ((uint8_t)0x80) /*!< Clock RTC Div 16 */
+#define CLK_RTCCLKDiv_32 ((uint8_t)0xA0) /*!< Clock RTC  Div 32 */
+#define CLK_RTCCLKDiv_64 ((uint8_t)0xC0) /*!< Clock RTC  Div 64 */
+
 #define CLK_CKDIVR                      _SFR_(0xC0)
 #define CLK_CRTCR                       _SFR_(0xC1)
 #define CLK_CRTCR_RTCDIV2               7
@@ -381,6 +404,19 @@ typedef enum
 #define BEEP_CSR2                       _SFR_(0xF3)
 
 /* RTC */
+#define RTC_WakeUpClock_RTCCLK_Div16    ((uint8_t)0x00) /*!< (RTC clock) div 16*/
+#define RTC_WakeUpClock_RTCCLK_Div8     ((uint8_t)0x01) /*!< (RTC clock) div 8*/
+#define RTC_WakeUpClock_RTCCLK_Div4     ((uint8_t)0x02) /*!< (RTC clock) div 4*/
+#define RTC_WakeUpClock_RTCCLK_Div2     ((uint8_t)0x03) /*!< (RTC clock) div 2*/
+#define RTC_WakeUpClock_CK_SPRE_16bits  ((uint8_t)0x04) /*!< CK SPRE with a counter from 0x0000 to 0xFFFF */
+#define RTC_WakeUpClock_CK_SPRE_17bits  ((uint8_t)0x06) /*!< CK SPRE with a counter from 0x10000 to 0x1FFFF */
+
+#define RTC_IT_WUT   ((uint8_t)0x40)  /*!< Wake up Timer Interrupt */
+#define RTC_IT_ALRA  ((uint8_t)0x10)  /*!< Alarm A Interrupt */
+#define RTC_IT_TAMP  ((uint8_t)0x01)  /*!< Tamper Interrupt */
+
+#define WUTWF_TIMEOUT      ((uint16_t)0xFFFF)
+
 #define RTC_TR1                         _SFR_(0x140)
 #define RTC_TR2                         _SFR_(0x141)
 #define RTC_TR3                         _SFR_(0x142)
