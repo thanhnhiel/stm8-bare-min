@@ -31,12 +31,13 @@ void tim2_init();
 void TIM3_PWMIConfig();
 void tim3Input_init();
 void tim4_init();
-
+void UART_LowLevel_Init(void);
 __IO uint8_t tim3_ov = 0;
 
 
-uint8_t count = 0;
-
+uint16_t count = 0;
+uint16_t buf[4];
+volatile uint8_t flag = 0;
 
 void main() 
 {
@@ -46,30 +47,95 @@ void main()
     LED_ON();
     LED2_ON();
     delay_ms(2000);
+    UART_LowLevel_Init();
+    uart_init();
+    printf("Test\r\n");
     LED2_OFF();
     LED_ON();
 
     // tim2_init();
-    // tim3Input_init();
+    tim3Input_init();
     tim4_init();
 
     enableInterrupts();
 
     while (1) 
     {
-        //LED_TOGGLE();
+        if (flag == 3)
+        {
+            printf("%x %x %x %x\r\n", buf[0],buf[1],buf[2],buf[3]);
+            delay_ms(5);
+            flag = 0;
+        }
+        
         //delay_ms(2000);
     }
+}
+
+void UART_LowLevel_Init(void)
+{
+    /*!< USART1 Tx- Rx (PC3- PC2) remapping to PA2- PA3 */
+    SYSCFG_RMPCR1 &= (uint8_t)((uint8_t)((uint8_t)0x011C << 4) | (uint8_t)0x0F);
+    SYSCFG_RMPCR1 |= (uint8_t)((uint16_t)0x011C & (uint16_t)0x00F0);
+
+    /* Enable USART clock */
+    //CLK_PeripheralClockConfig(CLK_Peripheral_USART1, ENABLE);
+      /* Enable the peripheral Clock */
+    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_USART1);
+}
+
+/*
+ * Redirect stdout to UART
+ */
+int putchar(int c) {
+    uart_write(c);
+    return 0;
+}
+
+/*
+ * Redirect stdin to UART
+ */
+int getchar() {
+    return uart_read();
 }
 
 INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
 {
     count++;
-    if (count == 100)
+
+    if (count == 6000)
     {
+        buf[0] = buf[1] = buf[2] = buf[3] = 0;
         count = 0;
-        LED2_TOGGLE();
+        //flag = 0;
+        LED2_ON();
     }
+    else if (count == 2)
+    {
+        LED2_OFF();
+    }
+    else if (count == 4)
+    {
+        LED2_ON();
+    }
+    else if (count == 8)
+    {
+        LED2_OFF();
+    }
+    else if (count == 10)
+    {
+        LED2_ON();
+    }
+    else if (count == 12)
+    {
+        LED2_OFF();
+    }
+    //if (count == 100)
+    // {
+    //     count = 0;
+    //     LED2_TOGGLE();
+    // }
+ 
 
     /* Clear the IT pending Bit */
     TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
@@ -96,6 +162,30 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
     IC1Value = (uint16_t)(tmpccrl); // Cycle - T
     IC1Value |= (uint16_t)((uint16_t)tmpccrh << 8);
 
+    tmpccrh = TIM3_CCR2H;
+    tmpccrl = TIM3_CCR2L;
+    IC2Value = (uint16_t)(tmpccrl);
+    IC2Value |= (uint16_t)((uint16_t)tmpccrh << 8);
+
+    if (flag == 0) 
+    {
+        flag = 1;
+    }
+    else if (flag == 1) 
+    {
+        buf[0] = IC1Value;
+        buf[1] = IC2Value;
+        flag = 2;
+        LED_TOGGLE();
+    }
+    else if (flag == 2) 
+    {
+        buf[2] = IC1Value;
+        buf[3] = IC2Value;
+        flag = 3;
+        LED_TOGGLE();
+    }
+
     if (IC1Value != 0)
     {
         /*tmpccrh = TIM3_CCR2H;
@@ -107,6 +197,7 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
         //SignalDutyCycle = ((uint32_t) IC2Value * 100) / IC1Value;
         /* Frequency computation */
         //SignalFrequency = (uint32_t) (2000000 / IC1Value);
+        
     }
     //else
     //{
@@ -136,7 +227,7 @@ void tim4_init()
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM4);
 
     /* Prescaler = 128 */
-    TIM4_PSCR = TIM2_PRESCALER_128;
+    TIM4_PSCR = TIM2_PRESCALER_1;
 
     /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
      *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
@@ -151,16 +242,6 @@ void tim4_init()
 
 void TIM3_PWMIConfig()
 {
-    //GPIO_Init(GPIOD, GPIO_Pin_1, GPIO_MODE_OUT_PP_LOW_FAST);
-    /* Clear Data */
-    PB_ODR &= (uint8_t)(~(1 << 1));
-    /* Set Output mode */
-    PB_DDR |= (uint8_t)(1 << 1);
-    /* Push-Pull/Open-Drain (Output) modes selection */
-    PB_CR1 |= (uint8_t)(1 << 1);
-    /* Slow slope */
-    PB_CR2 |= (uint8_t)(1 << 1);
-
     //   TIM3_ICPolarity_Rising  = ((uint8_t)0x00), /*!< Input Capture on Rising Edge*/
     //   TIM3_ICPolarity_Falling  = ((uint8_t)0x01)  /*!< Input Capture on Falling Edge*/
     uint8_t icpolarity = 0x01;
@@ -198,7 +279,7 @@ void TIM3_PWMIConfig()
     //TIM3_ICPSC_DIV2  = ((uint8_t)0x04),  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
     //TIM3_ICPSC_DIV4  = ((uint8_t)0x08),  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
     //TIM3_ICPSC_DIV8  = ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
-    TIM3_CCMR1 = (uint8_t)((TIM3_CCMR1 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x00);
+    TIM3_CCMR1 = (uint8_t)((TIM3_CCMR1 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x04);
 
     /* TI2 Configuration */
     //TI2_Config((TIM3_ICPolarity_TypeDef)icpolarity, (TIM3_ICSelection_TypeDef)icselection, TIM3_ICFilter);
@@ -223,11 +304,27 @@ void TIM3_PWMIConfig()
 
     /* Set the Input Capture Prescaler value */
     //TIM3_SetIC2Prescaler(TIM3_ICPSC_DIV1);
-    TIM3_CCMR2 = (uint8_t)((TIM3_CCMR2 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x00);
+    //TIM3_ICPSC_DIV1  = ((uint8_t)0x00),  /*!< Input Capture Prescaler = 1 (one capture every 1 event) */
+    //TIM3_ICPSC_DIV2  = ((uint8_t)0x04),  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
+    //TIM3_ICPSC_DIV4  = ((uint8_t)0x08),  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
+    //TIM3_ICPSC_DIV8  = ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
+    TIM3_CCMR2 = (uint8_t)((TIM3_CCMR2 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x04);
 }
 
 void tim3Input_init()
 {
+    //GPIO_Init(GPIOD, GPIO_Pin_1, GPIO_MODE_OUT_PP_LOW_FAST);
+    /* Clear Data */
+    // PB_ODR &= (uint8_t)(~(1 << 1));
+    // /* Set Output mode */
+    // PB_DDR |= (uint8_t)(1 << 1);
+    // /* Push-Pull/Open-Drain (Output) modes selection */
+    // PB_CR1 |= (uint8_t)(1 << 1);
+    // /* Slow slope */
+    // PB_CR2 |= (uint8_t)(1 << 1);
+    // CLK_Peripheral_TIM3 = 1 , Enable
+    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << (uint8_t)0x01);
+
     TIM3_PWMIConfig();
     // TIM3_SelectInputTrigger(TIM3_TRGSelection_TI1FP1 = 0x50);
     TIM3_SMCR = (uint8_t)((TIM3_SMCR & (uint8_t)(~0x70)) | (uint8_t)0x50);
