@@ -7,22 +7,30 @@
 //#include "beep.h"
 
 #define LED_PIN     4
+#define LED2_PIN     7
 
 #define LED_INIT() { \
        PC_DDR |= (1 << LED_PIN); \
        PC_CR1 |= (1 << LED_PIN); \
+       PB_DDR |= (1 << LED2_PIN); \
+       PB_CR1 |= (1 << LED2_PIN); \
        }
       
 #define LED_OFF()  PC_ODR &= ~(1 << LED_PIN)
 #define LED_ON()  PC_ODR |= (1 << LED_PIN)
 #define LED_TOGGLE()  PC_ODR ^= (1 << LED_PIN)
 
+#define LED2_OFF()  PB_ODR &= ~(1 << LED2_PIN)
+#define LED2_ON()  PB_ODR |= (1 << LED2_PIN)
+#define LED2_TOGGLE()  PB_ODR ^= (1 << LED2_PIN)
+
 void TIM3_DeInit(void);
 void tim2_init();
-void tim3_init();
-void tim4_init();
+
+//void tim3_init();
 void TIM3_PWMIConfig();
 void tim3Input_init();
+void tim4_init();
 
 __IO uint8_t tim3_ov = 0;
 
@@ -36,17 +44,20 @@ void main()
     CLK_CKDIVR = CLK_SYSCLKDiv_8;
     LED_INIT();
     LED_ON();
+    LED2_ON();
+    delay_ms(2000);
+    LED2_OFF();
+    LED_ON();
 
-    tim2_init();
-    tim3Input_init();
-    //tim4_init();
+    // tim2_init();
+    // tim3Input_init();
+    tim4_init();
 
     enableInterrupts();
 
-
     while (1) 
     {
-        //PC_ODR ^= (1 << LED_PIN);
+        //LED_TOGGLE();
         //delay_ms(2000);
     }
 }
@@ -54,37 +65,20 @@ void main()
 INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
 {
     count++;
-    if (count == 50)
+    if (count == 100)
     {
         count = 0;
-        PC_ODR ^= (1 << LED_PIN);
-   
+        LED2_TOGGLE();
     }
 
     /* Clear the IT pending Bit */
     TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
 }
 
+
 INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 {
-    // count++;
-    // if (count == 50)
-    // {
-    //     count = 0;
-    //     PC_ODR ^= (1 << LED_PIN);
-    // } 
-    //TIM2_ClearITPendingBit(TIM2_IT_UPDATE);
-    LED_TOGGLE();
-
-    // if (PC_ODR & (1 << LED_PIN))
-    // {
-    //     TIM2_CCMR1  =  (uint8_t)((TIM2_CCMR1 & (uint8_t)(~TIM2_CCMR_OCM))  | (uint8_t)TIM2_FORCEDACTION_ACTIVE);
-    // }
-    // else
-    // {
-    //     TIM2_CCMR1  =  (uint8_t)((TIM2_CCMR1 & (uint8_t)(~TIM2_CCMR_OCM))  | (uint8_t)TIM2_FORCEDACTION_INACTIVE);
-    // }
-
+    //LED_TOGGLE();
     TIM2_SR1 = (uint8_t)(~TIM2_IT_UPDATE);
 }
 
@@ -134,6 +128,7 @@ INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
     TIM3_SR1 = (uint8_t)(~TIM3_IT_UPDATE);
 }
 
+
 void tim4_init()
 {
     //===============================
@@ -141,7 +136,7 @@ void tim4_init()
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM4);
 
     /* Prescaler = 128 */
-    TIM4_PSCR = 0b00000111;
+    TIM4_PSCR = TIM2_PRESCALER_128;
 
     /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
      *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
@@ -153,8 +148,19 @@ void tim4_init()
     TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
 }
 
+
 void TIM3_PWMIConfig()
 {
+    //GPIO_Init(GPIOD, GPIO_Pin_1, GPIO_MODE_OUT_PP_LOW_FAST);
+    /* Clear Data */
+    PB_ODR &= (uint8_t)(~(1 << 1));
+    /* Set Output mode */
+    PB_DDR |= (uint8_t)(1 << 1);
+    /* Push-Pull/Open-Drain (Output) modes selection */
+    PB_CR1 |= (uint8_t)(1 << 1);
+    /* Slow slope */
+    PB_CR2 |= (uint8_t)(1 << 1);
+
     //   TIM3_ICPolarity_Rising  = ((uint8_t)0x00), /*!< Input Capture on Rising Edge*/
     //   TIM3_ICPolarity_Falling  = ((uint8_t)0x01)  /*!< Input Capture on Falling Edge*/
     uint8_t icpolarity = 0x01;
@@ -233,6 +239,7 @@ void tim3Input_init()
     TIM3_CR1 |= 0x01;
 }
 
+#if 0
 void tim3_init()
 {
     /* REMAP_Pin_TIM3Channel1: TIM3 Channel 1 (PB1) remapping to PI0 
@@ -291,7 +298,7 @@ void tim3_init()
     /* TIM2_Ctrl PWM Outputs */
     TIM3_BKR |= TIM_BKR_MOE;
 }
-
+#endif
 
 void tim2_init()
 {
