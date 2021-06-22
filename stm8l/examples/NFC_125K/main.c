@@ -28,7 +28,9 @@ void TIM3_DeInit(void);
 void tim2_init();
 
 //void tim3_init();
-void TIM3_PWMIConfig();
+void TIM3_PWMIConfig(uint8_t icpolarity,
+                uint8_t icselection,
+                uint8_t ICPrescaler);
 void tim3Input_init();
 void tim4_init();
 void UART_LowLevel_Init(void);
@@ -240,75 +242,66 @@ void tim4_init()
 }
 
 
-void TIM3_PWMIConfig()
+void TIM3_PWMIConfig(uint8_t icpolarity,
+                uint8_t icselection,
+                uint8_t ICPrescaler)
 {
-    //   TIM3_ICPolarity_Rising  = ((uint8_t)0x00), /*!< Input Capture on Rising Edge*/
-    //   TIM3_ICPolarity_Falling  = ((uint8_t)0x01)  /*!< Input Capture on Falling Edge*/
-    uint8_t icpolarity = 0x01;
-    
-    //TIM3_ICSelection_DirectTI    = ((uint8_t)0x01), /*!< Input Capture mapped on the direct input*/
-    //TIM3_ICSelection_IndirectTI  = ((uint8_t)0x02), /*!< Input Capture mapped on the indirect input*/
-    //TIM3_ICSelection_TRGI        = ((uint8_t)0x03)  /*!< Input Capture mapped on the Trigger Input*/
-    uint8_t icselection = 0x01;
-    uint8_t tmpccmr1 = TIM3_CCMR1;
-
     /* TI1 Configuration */
-    //TI1_Config(TIM3_ICPolarity, TIM3_ICSelection, TIM3_ICFilter);
-
-    /* Disable the Channel 1: Reset the CCE Bit TIM_CCER1_CC1E = 0x01 */
-    TIM3_CCER1 &=  (uint8_t)(~0x01);
-
-    /* Select the Input and set the filter - 0x01 TIM3_ICSelection_DirectTI */
+    //TI1_Config((TIM3_ICPolarity_TypeDef)TIM3_ICPolarity, (TIM3_ICSelection_TypeDef)TIM3_ICSelection, 0); // ICFilter = 0
+    uint8_t tmpccmr1 = TIM3_CCMR1;
+    TIM3_CCER1 &=  (uint8_t)(~0x01); // TIM_CCER1_CC1E
+    /* Select the Input and set the filter */
     tmpccmr1 &= (uint8_t)(~0x03) & (uint8_t)(~0xF0);
-    tmpccmr1 |= (uint8_t)(((uint8_t)(0x01)) | ((uint8_t)(0 << 4))); // TIM3_ICFilter = 0
+    tmpccmr1 |= (uint8_t)((uint8_t)(icselection));
     TIM3_CCMR1 = tmpccmr1;
-
     /* Select the Polarity */
-    // TIM_CCER1_CC1E = 0x01, TIM_CCER1_CC1P = 0x02
-    //TIM3_ICPolarity_Falling
-    //TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x01)) | (uint8_t)0x02);
-    //TIM3_ICPolarity_Rising
-    TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x01)) & (uint8_t)~0x02);
-
-    /* Set the CCE Bit TIM_CCER1_CC1E = 0x01 */
+    if (icpolarity == (uint8_t)(ICPolarity_Falling))
+    {
+        TIM3_CCER1 |= 0x02; // TIM_CCER1_CC1P
+    }
+    else
+    {
+        TIM3_CCER1 &= (uint8_t)(~0x02); // TIM_CCER1_CC1P
+    }
+    /* Set the CCE Bit - TIM_CCER1_CC1E*/
     TIM3_CCER1 |=  0x01;
-
+    
     /* Set the Input Capture Prescaler value */
-    //TIM3_SetIC1Prescaler(TIM3_ICPSC_DIV1);
-    //TIM3_ICPSC_DIV1  = ((uint8_t)0x00),  /*!< Input Capture Prescaler = 1 (one capture every 1 event) */
-    //TIM3_ICPSC_DIV2  = ((uint8_t)0x04),  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
-    //TIM3_ICPSC_DIV4  = ((uint8_t)0x08),  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
-    //TIM3_ICPSC_DIV8  = ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
-    TIM3_CCMR1 = (uint8_t)((TIM3_CCMR1 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x04);
-
+    // TIM3_SetIC1Prescaler(TIM3_ICPrescaler);
+    TIM3_CCMR1 = ((uint8_t)TIM3_SMCR & (uint8_t)(~0x0C)) | (uint8_t)ICPrescaler;
+    
     /* TI2 Configuration */
-    //TI2_Config((TIM3_ICPolarity_TypeDef)icpolarity, (TIM3_ICSelection_TypeDef)icselection, TIM3_ICFilter);
+    //TI2_Config((TIM3_ICPolarity_TypeDef)icpolarity, (TIM3_ICSelection_TypeDef)icselection, 0); // ICFilter = 0
     tmpccmr1 = TIM3_CCMR2;
-    /* Disable the Channel 2: Reset the CCE Bit - TIM_CCER1_CC2E */
-    TIM3_CCER1 &=  (uint8_t)(~0x10);
-
-      /* Select the Input and set the filter - TIM3_ICSelection_IndirectTI */
+    /* Disable the Channel 2: Reset the CCE Bit */
+    TIM3_CCER1 &=  (uint8_t)(~0x10); // TIM_CCER1_CC2E
+    /* Select the Input and set the filter */
     tmpccmr1 &= (uint8_t)(~0x03) & (uint8_t)(~0xF0);
-    tmpccmr1 |= (uint8_t)(((uint8_t)(0x02)) | ((uint8_t)(0 << 4)));
+    if (icselection == ICSelection_DirectTI)
+    {
+        tmpccmr1 |= (uint8_t)((uint8_t)(ICSelection_IndirectTI)); // ICFilter = 0
+    }
+    else
+    {
+        tmpccmr1 |= (uint8_t)((uint8_t)(ICSelection_DirectTI)); // ICFilter = 0
+    }
+    
     TIM3_CCMR2 = tmpccmr1;
-
     /* Select the Polarity */
-    // TIM_CCER1_CC1E = 0x01, TIM_CCER1_CC1P = 0x02
-    //TIM3_ICPolarity_Falling
-    TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x20)) | (uint8_t)0x02);
-    //TIM3_ICPolarity_Rising
-    //TIM3_CCER1 = (uint8_t)((TIM3_CCER1 & (uint8_t)(~0x20)) & (uint8_t)~0x02);
-
-    /* Set the CCE Bit TIM_CCER1_CC2E */
-    TIM3_CCER1 |=  0x10;
-
+    if (icpolarity == ICPolarity_Rising)
+    {
+        TIM3_CCER1 |= 0x20; // TIM_CCER1_CC2P
+    }
+    else
+    {
+        TIM3_CCER1 &= (uint8_t)(~0x20); // TIM_CCER1_CC2P
+    }
+    /* Set the CCE Bit */
+    TIM3_CCER1 |=  0x10; //TIM_CCER1_CC2E
+    
     /* Set the Input Capture Prescaler value */
-    //TIM3_SetIC2Prescaler(TIM3_ICPSC_DIV1);
-    //TIM3_ICPSC_DIV1  = ((uint8_t)0x00),  /*!< Input Capture Prescaler = 1 (one capture every 1 event) */
-    //TIM3_ICPSC_DIV2  = ((uint8_t)0x04),  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
-    //TIM3_ICPSC_DIV4  = ((uint8_t)0x08),  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
-    //TIM3_ICPSC_DIV8  = ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
-    TIM3_CCMR2 = (uint8_t)((TIM3_CCMR2 & (uint8_t)(~TIM3_CCMR_ICxPSC)) | (uint8_t)0x04);
+    //TIM3_SetIC2Prescaler(TIM3_ICPrescaler);
+    TIM3_CCMR2 = ((uint8_t)TIM3_SMCR & (uint8_t)(~0x0C)) | (uint8_t)ICPrescaler;  
 }
 
 void tim3Input_init()
@@ -325,14 +318,24 @@ void tim3Input_init()
     // CLK_Peripheral_TIM3 = 1 , Enable
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << (uint8_t)0x01);
 
-    TIM3_PWMIConfig();
-    // TIM3_SelectInputTrigger(TIM3_TRGSelection_TI1FP1 = 0x50);
-    TIM3_SMCR = (uint8_t)((TIM3_SMCR & (uint8_t)(~0x70)) | (uint8_t)0x50);
-    // TIM3_SelectSlaveMode(TIM3_SlaveMode_Reset = 0x04);
-    TIM3_SMCR = (uint8_t)((TIM3_SMCR & (uint8_t)(~0x70)) | (uint8_t)0x04);
-    // TIM3_ITConfig(TIM3_IT_CC1 = 0x02, ENABLE);
-    TIM3_IER |= (uint8_t)(0x02);
-    // TIM3_Cmd(ENABLE);
+    /* configure TIM1 channel 1 to capture a PWM signal */
+    //TIM3_PWMIConfig(TIM3_Channel_1, TIM3_ICPolarity_Rising, TIM3_ICSelection_DirectTI,
+    //             TIM3_ICPSC_DIV1, ICFilter);
+    TIM3_PWMIConfig(ICPolarity_Rising, ICSelection_DirectTI, ICPSC_DIV1);
+    
+    /* Select the TIM1 Input Trigger: TI1FP1 */
+    //TIM3_SelectInputTrigger(TIM3_TRGSelection_TI1FP1 - 0x50);
+    TIM3_SMCR = ((uint8_t)TIM3_SMCR & (uint8_t)(~TIM_SMCR_TS)) | (uint8_t)0x50;
+    //TIM3_SelectSlaveMode(TIM3_SlaveMode_Reset - 0x04);
+    TIM3_SMCR = ((uint8_t)TIM3_SMCR & (uint8_t)(~TIM_SMCR_SMS)) | (uint8_t)0x04;
+
+    /* Enable CC1 interrupt request */
+    //TIM3_ITConfig(TIM3_IT_CC1, ENABLE); // TIM3_IT_CC1
+    TIM3_IER |= (uint8_t)0x02;
+    //enableInterrupts();
+
+    /* Enable TIM1 */
+    //TIM3_Cmd(ENABLE) - TIM_CR1_CEN;
     TIM3_CR1 |= 0x01;
 }
 

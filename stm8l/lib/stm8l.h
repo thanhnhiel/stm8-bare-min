@@ -808,6 +808,22 @@ typedef enum
   TIM3_OCMODE_PWM2       = ((uint8_t)0x70)
 } TIM3_OCMode_TypeDef;
 
+#define  ICPolarity_Rising   ((uint8_t)0x00) /*!< Input Capture on Rising Edge*/
+#define  ICPolarity_Falling  ((uint8_t)0x01)  /*!< Input Capture on Falling Edge*/
+
+
+#define  ICSelection_DirectTI     ((uint8_t)0x01) /*!< Input Capture mapped on the direct input*/
+#define  ICSelection_IndirectTI   ((uint8_t)0x02) /*!< Input Capture mapped on the indirect input*/
+#define  ICSelection_TRGI         ((uint8_t)0x03)  /*!< Input Capture mapped on the Trigger Input*/
+
+#define  ICPSC_DIV1   ((uint8_t)0x00)  /*!< Input Capture Prescaler = 1 (one capture every 1 event) */
+#define  ICPSC_DIV2   ((uint8_t)0x04)  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
+#define  ICPSC_DIV4   ((uint8_t)0x08)  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
+#define  ICPSC_DIV8   ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
+
+#define TIM_SMCR_TS      ((uint8_t)0x70) /*!< Trigger Selection Mask. */
+#define TIM_SMCR_SMS     ((uint8_t)0x07) /*!< Slave Mode Selection Mask. */
+
 /*CCER1*/
 #define TIM3_CCER1_CC2P ((uint8_t)0x20) /*!< Capture/Compare 2 output Polarity mask. */
 #define TIM3_CCER1_CC2E ((uint8_t)0x10) /*!< Capture/Compare 2 output enable mask. */
