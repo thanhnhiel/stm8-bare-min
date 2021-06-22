@@ -180,13 +180,38 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
         Duty |= (uint16_t)((uint16_t)tmpccrh << 8);
 
 /*
+541/1026
+1026 // 902 -> 1156 : Change two times
 772 // 642 -> 902 : Change bit - High
 512 // 382 -> 642 : Don't Change - Low
 313
 */
-        if (Duty > (210*2) && Cycle < (902*2))  // 0.2mS - 2mS
+        if (Duty > (210*2) && Cycle < (1156*2))  // 0.2mS - 2mS
         {
-            if (Cycle > 642*2) // High
+            if (Cycle > 902*2)
+            {
+                if (isData) 
+                { 
+                    if (isBitOne == 1) isBitOne = 0;
+                    else isBitOne = 1;
+                    
+                    nfcData <<= 1;
+                    nfcData |= isBitOne;
+
+                    NumOfBits++;
+                    //===========================
+                    if (isBitOne == 1) isBitOne = 0;
+                    else isBitOne = 1;
+                    
+                    nfcData <<= 1;
+                    nfcData |= isBitOne;
+
+                    NumOfBits++;
+                    LED_TOGGLE();
+                }
+                Start = 0;
+            }
+            else if (Cycle > 642*2) // High
             {
                 Start = 0;
                 if (isData) 
