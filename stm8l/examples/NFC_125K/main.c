@@ -198,21 +198,16 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
                     nfcData |= isBitOne;
 
                     NumOfBits++;
+                     LED_TOGGLE();
                 }
             }
             else if (Cycle > 382*2) // Low
             {
                 Start++;
 
-                if (isData) 
-                { 
-                    nfcData <<= 1;
-                    nfcData |= isBitOne;
-                }
-
                 if (Start == 11)
                 {
-                    LED_TOGGLE();
+                    Start = 0;
                     isData = 1;
                     isBitOne = 1;
                     nfcData = 0;
@@ -232,6 +227,7 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
                     { 
                         nfcData <<= 1;
                         nfcData |= isBitOne;
+                        LED_TOGGLE();
                     }
                 }
                 NumOfBits++;            
