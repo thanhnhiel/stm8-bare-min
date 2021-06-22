@@ -63,10 +63,9 @@ void main()
 
     while (1) 
     {
-        if (flag == 3)
+        if (flag!=0)
         {
-            printf("%x %x %x %x\r\n", buf[0],buf[1],buf[2],buf[3]);
-            delay_ms(5);
+            printf("Cycle: %x Duty: %x\r\n", buf[0],  buf[1]);
             flag = 0;
         }
         
@@ -105,38 +104,38 @@ INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR)
 {
     count++;
 
-    if (count == 6000)
-    {
-        buf[0] = buf[1] = buf[2] = buf[3] = 0;
-        count = 0;
-        //flag = 0;
-        LED2_ON();
-    }
-    else if (count == 2)
-    {
-        LED2_OFF();
-    }
-    else if (count == 4)
-    {
-        LED2_ON();
-    }
-    else if (count == 8)
-    {
-        LED2_OFF();
-    }
-    else if (count == 10)
-    {
-        LED2_ON();
-    }
-    else if (count == 12)
-    {
-        LED2_OFF();
-    }
-    //if (count == 100)
+    // if (count == 6000)
     // {
+    //     buf[0] = buf[1] = buf[2] = buf[3] = 0;
     //     count = 0;
-    //     LED2_TOGGLE();
+    //     //flag = 0;
+    //     LED2_ON();
     // }
+    // else if (count == 2)
+    // {
+    //     LED2_OFF();
+    // }
+    // else if (count == 4)
+    // {
+    //     LED2_ON();
+    // }
+    // else if (count == 8)
+    // {
+    //     LED2_OFF();
+    // }
+    // else if (count == 10)
+    // {
+    //     LED2_ON();
+    // }
+    // else if (count == 12)
+    // {
+    //     LED2_OFF();
+    // }
+    //if (count == 100)
+    {
+     //   count = 0;
+        LED2_TOGGLE();
+    }
  
 
     /* Clear the IT pending Bit */
@@ -166,46 +165,27 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 
     tmpccrh = TIM3_CCR2H;
     tmpccrl = TIM3_CCR2L;
-    IC2Value = (uint16_t)(tmpccrl);
-    IC2Value |= (uint16_t)((uint16_t)tmpccrh << 8);
 
-    if (flag == 0) 
-    {
-        flag = 1;
-    }
-    else if (flag == 1) 
-    {
-        buf[0] = IC1Value;
-        buf[1] = IC2Value;
-        flag = 2;
-        LED_TOGGLE();
-    }
-    else if (flag == 2) 
-    {
-        buf[2] = IC1Value;
-        buf[3] = IC2Value;
-        flag = 3;
-        LED_TOGGLE();
-    }
+    LED_TOGGLE();
 
     if (IC1Value != 0)
     {
-        /*tmpccrh = TIM3_CCR2H;
-        tmpccrl = TIM3_CCR2L;
         IC2Value = (uint16_t)(tmpccrl);
-        IC2Value |= (uint16_t)((uint16_t)tmpccrh << 8);*/
+        IC2Value |= (uint16_t)((uint16_t)tmpccrh << 8);
+
+        if (flag == 0) 
+        {
+            buf[0] = IC1Value;
+            buf[1] = IC2Value;
+
+            flag = 1;
+        }
 
         /* Duty cycle computation */
         //SignalDutyCycle = ((uint32_t) IC2Value * 100) / IC1Value;
         /* Frequency computation */
         //SignalFrequency = (uint32_t) (2000000 / IC1Value);
-        
     }
-    //else
-    //{
-    //    SignalDutyCycle = 0;
-    //    SignalFrequency = 0;
-    //}
 }
 
 INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
@@ -233,7 +213,7 @@ void tim4_init()
 
     /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
      *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
-    TIM4_ARR = 77;
+    TIM4_ARR = 99;
 
     //TIM4_IER |= (1 << TIM4_IER_UIE); // Enable Update Interrupt
     TIM4_IER |= (uint8_t)TIM4_IT_UPDATE;
