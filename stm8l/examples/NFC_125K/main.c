@@ -151,8 +151,9 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
+    static uint8_t Start = 0;
     uint8_t tmpccrl, tmpccrh;
-    uint16_t IC1Value = 0, IC2Value = 0;
+    uint16_t Cycle = 0, Duty = 0;
     //volatile uint32_t SignalDutyCycle = 0;
     //volatile uint32_t SignalFrequency = 0;
 
@@ -160,31 +161,59 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
     TIM3_SR1 = (uint8_t)(~TIM3_IT_CC1);
     tmpccrh = TIM3_CCR1H;
     tmpccrl = TIM3_CCR1L;
-    IC1Value = (uint16_t)(tmpccrl); // Cycle - T
-    IC1Value |= (uint16_t)((uint16_t)tmpccrh << 8);
+    Cycle = (uint16_t)(tmpccrl); // Cycle - T
+    Cycle |= (uint16_t)((uint16_t)tmpccrh << 8);
 
     tmpccrh = TIM3_CCR2H;
     tmpccrl = TIM3_CCR2L;
 
-    LED_TOGGLE();
+    
 
-    if (IC1Value != 0)
+    if (Cycle != 0)
     {
-        IC2Value = (uint16_t)(tmpccrl);
-        IC2Value |= (uint16_t)((uint16_t)tmpccrh << 8);
+        Duty = (uint16_t)(tmpccrl);
+        Duty |= (uint16_t)((uint16_t)tmpccrh << 8);
 
-        if (flag == 0) 
+/*
+772 // 642 -> 902 : Change bit - High
+512 // 382 -> 642 : Don't Change - Low
+313
+*/
+        if (Duty > (210*2) && Cycle < (902*2))  // 0.2mS - 2mS
         {
-            buf[0] = IC1Value;
-            buf[1] = IC2Value;
+            if (Cycle > 642*2) // High
+            {
+                Start = 0;
+            }
+            else if (Cycle > 382*2) // Low
+            {
+                Start++;
+                if (Start == 11)
+                {
+                    LED_TOGGLE();
+                    if (flag == 0)
+                    {
+                        buf[0] = Cycle;
+                        buf[1] = Duty;
 
-            flag = 1;
+                        flag = 1;
+                    }
+                }
+            }
+            else
+            {
+                Start = 0;
+            }
+        }
+        else
+        {
+            Start = 0;
         }
 
         /* Duty cycle computation */
-        //SignalDutyCycle = ((uint32_t) IC2Value * 100) / IC1Value;
+        //SignalDutyCycle = ((uint32_t) Duty * 100) / Cycle;
         /* Frequency computation */
-        //SignalFrequency = (uint32_t) (2000000 / IC1Value);
+        //SignalFrequency = (uint32_t) (2000000 / Cycle);
     }
 }
 
@@ -301,7 +330,7 @@ void tim3Input_init()
     /* configure TIM1 channel 1 to capture a PWM signal */
     //TIM3_PWMIConfig(TIM3_Channel_1, TIM3_ICPolarity_Rising, TIM3_ICSelection_DirectTI,
     //             TIM3_ICPSC_DIV1, ICFilter);
-    TIM3_PWMIConfig(ICPolarity_Rising, ICSelection_DirectTI, ICPSC_DIV1);
+    TIM3_PWMIConfig(ICPolarity_Falling, ICSelection_DirectTI, ICPSC_DIV1);
     
     /* Select the TIM1 Input Trigger: TI1FP1 */
     //TIM3_SelectInputTrigger(TIM3_TRGSelection_TI1FP1 - 0x50);
