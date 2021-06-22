@@ -40,6 +40,8 @@ __IO uint8_t tim3_ov = 0;
 uint16_t count = 0;
 uint16_t buf[4];
 volatile uint8_t flag = 0;
+volatile uint32_t nfcData = 0;
+volatile uint32_t nfcData2 = 0;
 
 void main() 
 {
@@ -65,7 +67,8 @@ void main()
     {
         if (flag!=0)
         {
-            printf("Cycle: %x Duty: %x\r\n", buf[0],  buf[1]);
+            printf("Cycle: %x NumOfBits: %x\r\n", buf[0], buf[1]);
+            printf("data: %x \r\n", nfcData2);
             flag = 0;
         }
         
@@ -151,7 +154,9 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
-    static uint8_t Start = 0;
+    static uint8_t Start = 0, isData = 0;
+    static uint8_t NumOfBits = 0;
+    static uint8_t isBitOne = 0;
     uint8_t tmpccrl, tmpccrh;
     uint16_t Cycle = 0, Duty = 0;
     //volatile uint32_t SignalDutyCycle = 0;
@@ -184,30 +189,63 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
             if (Cycle > 642*2) // High
             {
                 Start = 0;
+                if (isData) 
+                { 
+                    if (isBitOne == 1) isBitOne = 0;
+                    else isBitOne = 1;
+                    
+                    nfcData <<= 1;
+                    nfcData |= isBitOne;
+
+                    NumOfBits++;
+                }
             }
             else if (Cycle > 382*2) // Low
             {
                 Start++;
+
+                if (isData) 
+                { 
+                    nfcData <<= 1;
+                    nfcData |= isBitOne;
+                }
+
                 if (Start == 11)
                 {
                     LED_TOGGLE();
+                    isData = 1;
+                    isBitOne = 1;
+                    nfcData = 0;
+
                     if (flag == 0)
                     {
                         buf[0] = Cycle;
-                        buf[1] = Duty;
-
+                        buf[1] = NumOfBits;
                         flag = 1;
+                        nfcData2 = nfcData;
+                    }
+                    NumOfBits = 0;
+                }
+                else
+                {
+                    if (isData) 
+                    { 
+                        nfcData <<= 1;
+                        nfcData |= isBitOne;
                     }
                 }
+                NumOfBits++;            
             }
             else
             {
                 Start = 0;
+                NumOfBits = 0;
             }
         }
         else
         {
             Start = 0;
+            NumOfBits = 0;
         }
 
         /* Duty cycle computation */
