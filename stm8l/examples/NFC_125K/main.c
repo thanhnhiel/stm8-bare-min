@@ -8,12 +8,13 @@
 
 #define LED_PIN     4
 #define LED2_PIN     7
+#define LED3_PIN     2
 
 #define LED_INIT() { \
        PC_DDR |= (1 << LED_PIN); \
        PC_CR1 |= (1 << LED_PIN); \
-       PB_DDR |= (1 << LED2_PIN); \
-       PB_CR1 |= (1 << LED2_PIN); \
+       PB_DDR |= (1 << LED2_PIN | 1 << LED3_PIN); \
+       PB_CR1 |= (1 << LED2_PIN | 1 << LED3_PIN); \
        }
       
 #define LED_OFF()  PC_ODR &= ~(1 << LED_PIN)
@@ -23,6 +24,10 @@
 #define LED2_OFF()  PB_ODR &= ~(1 << LED2_PIN)
 #define LED2_ON()  PB_ODR |= (1 << LED2_PIN)
 #define LED2_TOGGLE()  PB_ODR ^= (1 << LED2_PIN)
+
+#define LED3_OFF()  PB_ODR &= ~(1 << LED3_PIN)
+#define LED3_ON()  PB_ODR |= (1 << LED3_PIN)
+#define LED3_TOGGLE()  PB_ODR ^= (1 << LED3_PIN)
 
 void TIM3_DeInit(void);
 void tim2_init();
@@ -34,6 +39,7 @@ void TIM3_PWMIConfig(uint8_t icpolarity,
 void tim3Input_init();
 void tim4_init();
 void UART_LowLevel_Init(void);
+void process(uint8_t val);
 __IO uint8_t tim3_ov = 0;
 
 
@@ -41,7 +47,6 @@ uint16_t count = 0;
 uint16_t buf[4];
 volatile uint8_t flag = 0;
 volatile uint32_t nfcData = 0;
-volatile uint32_t nfcData2 = 0;
 
 void main() 
 {
@@ -50,6 +55,7 @@ void main()
     LED_INIT();
     LED_ON();
     LED2_ON();
+    LED3_OFF();
     delay_ms(2000);
     UART_LowLevel_Init();
     uart_init();
@@ -67,8 +73,15 @@ void main()
     {
         if (flag!=0)
         {
-            printf("Cycle: %x NumOfBits: %x\r\n", buf[0], buf[1]);
-            printf("data: %x \r\n", nfcData2);
+            printf("data: %x ", nfcData);
+            for (uint8_t i=0;i<32;i++)
+            {
+                if (nfcData & 0x80000000) putchar('1');
+                else putchar('0');
+                nfcData <<= 1;
+            }
+            printf(" - NumOfBits: %002d\r\n", buf[1]);
+            
             flag = 0;
         }
         
@@ -106,41 +119,12 @@ int getchar() {
 INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
 {
     count++;
-
-    // if (count == 6000)
-    // {
-    //     buf[0] = buf[1] = buf[2] = buf[3] = 0;
-    //     count = 0;
-    //     //flag = 0;
-    //     LED2_ON();
-    // }
-    // else if (count == 2)
-    // {
-    //     LED2_OFF();
-    // }
-    // else if (count == 4)
-    // {
-    //     LED2_ON();
-    // }
-    // else if (count == 8)
-    // {
-    //     LED2_OFF();
-    // }
-    // else if (count == 10)
-    // {
-    //     LED2_ON();
-    // }
-    // else if (count == 12)
-    // {
-    //     LED2_OFF();
-    // }
     //if (count == 100)
     {
      //   count = 0;
         LED2_TOGGLE();
     }
  
-
     /* Clear the IT pending Bit */
     TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
 }
@@ -152,11 +136,13 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
     TIM2_SR1 = (uint8_t)(~TIM2_IT_UPDATE);
 }
 
+#define Noise      0
+#define DoubleHigh 1
+#define High       2
+#define Low        3
+
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
-    static uint8_t Start = 0, isData = 0;
-    static uint8_t NumOfBits = 0;
-    static uint8_t isBitOne = 0;
     uint8_t tmpccrl, tmpccrh;
     uint16_t Cycle = 0, Duty = 0;
     //volatile uint32_t SignalDutyCycle = 0;
@@ -186,93 +172,127 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 512 // 382 -> 642 : Don't Change - Low
 313
 */
-        if (Duty > (210*2) && Cycle < (1156*2))  // 0.2mS - 2mS
+        if (Duty > 210*2 && Cycle > (382*2) && Cycle < (1156*2))  // 0.2mS - 2mS
         {
+            // Two bit high
             if (Cycle > 902*2)
             {
-                if (isData) 
-                { 
-                    if (isBitOne == 1) isBitOne = 0;
-                    else isBitOne = 1;
-                    
-                    nfcData <<= 1;
-                    nfcData |= isBitOne;
-
-                    NumOfBits++;
-                    //===========================
-                    if (isBitOne == 1) isBitOne = 0;
-                    else isBitOne = 1;
-                    
-                    nfcData <<= 1;
-                    nfcData |= isBitOne;
-
-                    NumOfBits++;
-                    LED_TOGGLE();
-                }
-                Start = 0;
+                process(DoubleHigh);
             }
             else if (Cycle > 642*2) // High
             {
-                Start = 0;
-                if (isData) 
-                { 
-                    if (isBitOne == 1) isBitOne = 0;
-                    else isBitOne = 1;
-                    
-                    nfcData <<= 1;
-                    nfcData |= isBitOne;
-
-                    NumOfBits++;
-                     LED_TOGGLE();
-                }
+                process(High);
             }
-            else if (Cycle > 382*2) // Low
+            else // Low
             {
-                Start++;
-
-                if (Start == 11)
-                {
-                    Start = 0;
-                    isData = 1;
-                    isBitOne = 1;
-                    nfcData = 0;
-
-                    if (flag == 0)
-                    {
-                        buf[0] = Cycle;
-                        buf[1] = NumOfBits;
-                        flag = 1;
-                        nfcData2 = nfcData;
-                    }
-                    NumOfBits = 0;
-                }
-                else
-                {
-                    if (isData) 
-                    { 
-                        nfcData <<= 1;
-                        nfcData |= isBitOne;
-                        LED_TOGGLE();
-                    }
-                }
-                NumOfBits++;            
-            }
-            else
-            {
-                Start = 0;
-                NumOfBits = 0;
+                process(Low);
             }
         }
-        else
+        else // Noise
         {
-            Start = 0;
-            NumOfBits = 0;
+            process(Noise);
         }
 
         /* Duty cycle computation */
         //SignalDutyCycle = ((uint32_t) Duty * 100) / Cycle;
         /* Frequency computation */
         //SignalFrequency = (uint32_t) (2000000 / Cycle);
+    }
+}
+
+#define INIT  0
+#define DATA  1
+#define END   2
+
+void process(uint8_t val)
+{
+    static uint8_t state = INIT;
+    static uint8_t Start = 0;
+    static uint8_t NumOfBits = 0;
+    static uint8_t isBitOne = 0;
+    static uint32_t _nfcData = 0;
+    uint8_t isStartBit = 0;
+
+    LED3_OFF();
+    // Detect Start bit
+
+    if (val == Low)
+    {
+        Start++;
+        if (Start == 11)
+        {
+            LED3_ON();
+            state = DATA;
+
+            if (flag == 0)
+            {
+                //buf[0] = Cycle;
+                buf[1] = NumOfBits - 11;
+                nfcData = _nfcData;
+                flag = 1;
+            }
+            NumOfBits = 0;
+            _nfcData = 0;
+            isBitOne = 1;            
+            Start = 0;
+            isStartBit = 1;     
+        }
+    }
+    else 
+    {
+        Start = 0;
+    }    
+
+    if (isStartBit == 1)
+    {
+        isStartBit = 0;
+    }
+    else if (state == DATA)
+    {
+        if (val == Noise)
+        {
+            state = INIT;
+            Start = 0;
+            NumOfBits = 0;
+            return;
+        }
+
+        NumOfBits++;
+
+        //LED_TOGGLE();
+
+        if (val == DoubleHigh)
+        {
+           // NumOfBits++;
+
+            if (isBitOne == 1) isBitOne = 0;
+            else isBitOne = 1;
+
+            _nfcData <<= 1;
+            _nfcData |= isBitOne;
+            //==============================
+            if (isBitOne == 1) isBitOne = 0;
+            else isBitOne = 1;
+
+            _nfcData <<= 1;
+            _nfcData |= isBitOne;
+        }
+        else if (val == High)
+        {
+            if (isBitOne == 1) isBitOne = 0;
+            else isBitOne = 1;
+
+            _nfcData <<= 1;
+            _nfcData |= isBitOne;
+        }
+        else if (val == Low)
+        {
+            _nfcData <<= 1;
+            _nfcData |= isBitOne;
+            
+        }
+        if (isBitOne == 1) LED_ON();
+        else LED_OFF();
     }
 }
 
