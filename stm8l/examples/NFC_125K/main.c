@@ -140,11 +140,21 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 #define DoubleHigh 1
 #define High       2
 #define Low        3
+#define StartBit   3
+
+
+#define INIT  0
+#define DATA  1
+#define END   2
 
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
     uint8_t tmpccrl, tmpccrh;
     uint16_t Cycle = 0, Duty = 0;
+    uint16_t LowDuty = 0;
+    uint8_t isStartBit = 0;
+    static uint8_t state = INIT;
+    static uint8_t Start = 0;
     //volatile uint32_t SignalDutyCycle = 0;
     //volatile uint32_t SignalFrequency = 0;
 
@@ -157,41 +167,97 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 
     tmpccrh = TIM3_CCR2H;
     tmpccrl = TIM3_CCR2L;
-
+   
     
 
     if (Cycle != 0)
     {
         Duty = (uint16_t)(tmpccrl);
         Duty |= (uint16_t)((uint16_t)tmpccrh << 8);
-
+        LowDuty = Cycle - Duty;
 /*
 541/1026
 1026 // 902 -> 1156 : Change two times
 772 // 642 -> 902 : Change bit - High
 512 // 382 -> 642 : Don't Change - Low
 313
-*/
-        if (Duty > 210*2 && Cycle > (382*2) && Cycle < (1156*2))  // 0.2mS - 2mS
+*/      
+        LED3_OFF();
+
+        if (Duty > (210*2) && Cycle < (902*2))  // 0.2mS - 2mS
         {
-            // Two bit high
-            if (Cycle > 902*2)
+            if (Cycle > 382*2 && Cycle < 642*2) // Low
             {
-                process(DoubleHigh);
+                Start++;
+
+                if (Start == 11)
+                {
+                    process(StartBit);
+                    state = DATA;
+                    LED3_ON();
+                    Start = 0;
+                    isStartBit = 1;
+                }
             }
-            else if (Cycle > 642*2) // High
+            else
             {
-                process(High);
-            }
-            else // Low
-            {
-                process(Low);
+                Start = 0;
             }
         }
-        else // Noise
+        else
         {
-            process(Noise);
+            Start = 0;
         }
+
+        if (isStartBit == 1)
+        {
+            isStartBit = 0;
+        }
+        else if (state==DATA)
+        {
+            if (Duty > 210*2 && Cycle > (382*2) && Cycle < (1156*2))  // 0.2mS - 2mS
+            {
+                if (state = DATA)
+                {
+                    LED_TOGGLE();
+                    if (Duty > 642*2 && Duty < 902*2) // High
+                    {
+                        process(High);
+                        process(High);
+                    }
+                    else if (Duty > 382*2) // Low
+                    {
+                        process(Low);
+                    }
+                    else
+                    {
+                        process(Noise);
+                    }
+                    
+                    if (LowDuty > 642*2 && LowDuty < 902*2) // High
+                    {
+                        process(High);
+                        process(High);
+                    }
+                    else if (LowDuty > 382*2)// Low
+                    {
+                        process(Low);
+                    }
+                    else
+                    {
+                        process(Noise);
+                        state = INIT;
+                    }
+                }
+            }
+            else // Noise
+            {
+                process(Noise);
+                state = INIT;
+            }   
+        }
+
+       
 
         /* Duty cycle computation */
         //SignalDutyCycle = ((uint32_t) Duty * 100) / Cycle;
@@ -200,99 +266,55 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
     }
 }
 
-#define INIT  0
-#define DATA  1
-#define END   2
+
 
 void process(uint8_t val)
 {
-    static uint8_t state = INIT;
-    static uint8_t Start = 0;
+    static uint8_t i = 0;
+    static uint8_t lastBit = 0;
     static uint8_t NumOfBits = 0;
-    static uint8_t isBitOne = 0;
     static uint32_t _nfcData = 0;
-    uint8_t isStartBit = 0;
 
-    LED3_OFF();
-    // Detect Start bit
 
-    if (val == Low)
+    if (val == StartBit)
     {
-        Start++;
-        if (Start == 11)
+        lastBit = 0;
+        i = 0;
+        _nfcData = 0;
+        NumOfBits = 0;
+    }
+    else if (val != Noise)
+    {
+        i++;
+        if (i == 1) lastBit = val;
+        else if (i == 2)
         {
-            LED3_ON();
-            state = DATA;
-
-            if (flag == 0)
+            if (val == Low)
             {
-                //buf[0] = Cycle;
-                buf[1] = NumOfBits - 11;
-                nfcData = _nfcData;
-                flag = 1;
+                _nfcData <<= 1;
+                NumOfBits++;
             }
-            NumOfBits = 0;
-            _nfcData = 0;
-            isBitOne = 1;            
-            Start = 0;
-            isStartBit = 1;     
-        }
-    }
-    else 
-    {
-        Start = 0;
-    }    
-
-    if (isStartBit == 1)
-    {
-        isStartBit = 0;
-    }
-    else if (state == DATA)
-    {
-        if (val == Noise)
-        {
-            state = INIT;
-            Start = 0;
-            NumOfBits = 0;
-            return;
-        }
-
-        NumOfBits++;
-
-        //LED_TOGGLE();
-
-        if (val == DoubleHigh)
-        {
-           // NumOfBits++;
-
-            if (isBitOne == 1) isBitOne = 0;
-            else isBitOne = 1;
-
-            _nfcData <<= 1;
-            _nfcData |= isBitOne;
-            //==============================
-            if (isBitOne == 1) isBitOne = 0;
-            else isBitOne = 1;
-
-            _nfcData <<= 1;
-            _nfcData |= isBitOne;
-        }
-        else if (val == High)
-        {
-            if (isBitOne == 1) isBitOne = 0;
-            else isBitOne = 1;
-
-            _nfcData <<= 1;
-            _nfcData |= isBitOne;
-        }
-        else if (val == Low)
-        {
-            _nfcData <<= 1;
-            _nfcData |= isBitOne;
+            else if (val == High)
+            {
+                _nfcData <<= 1;
+                _nfcData |= 1;
+                NumOfBits++;
+            }
             
+            i = 0;
+
+            if (NumOfBits >= 32)
+            {
+                NumOfBits = 0;
+                if (flag == 0)
+                {
+                    //buf[0] = Cycle;
+                    buf[1] = 32;
+                    nfcData = _nfcData;
+                    flag = 1;
+                }
+            }
         }
-        if (isBitOne == 1) LED_ON();
-        else LED_OFF();
     }
 }
 
