@@ -45,9 +45,16 @@ __IO uint8_t tim3_ov = 0;
 
 uint16_t count = 0;
 uint16_t buf[4];
+uint8_t bufLen = 0;
+uint8_t dataBit = 0;
 volatile uint8_t flag = 0;
-volatile uint32_t nfcData = 0;
+//volatile uint32_t nfcData = 0;
 volatile uint32_t _nfcData = 0;
+volatile uint32_t _nfcData1 = 0;
+volatile uint32_t nfcData = 0;
+volatile uint32_t nfcData1 = 0;
+
+
 uint8_t NumOfBits = 0;
 
 void main() 
@@ -75,15 +82,19 @@ void main()
     {
         if (flag!=0)
         {
-            printf("data: %x ", nfcData);
-            for (uint8_t i=0;i<32;i++)
-            {
-                if (nfcData & 0x80000000) putchar('1');
-                else putchar('0');
-                nfcData <<= 1;
-            }
-            printf(" - NumOfBits: %002d\r\n", buf[1]);
-            
+            // printf("data: %x ", nfcData);
+            // for (uint8_t i=0;i<32;i++)
+            // {
+            //     if (nfcData & 0x80000000) putchar('1');
+            //     else putchar('0');
+            //     nfcData <<= 1;
+            // }
+            // printf(" - NumOfBits: %002d\r\n", buf[1]);
+            // for (uint8_t i=0; i < bufLen; i++)
+            // {
+            //     putchar(buf[i]);
+            // }
+            //bufLen = 0;
             flag = 0;
         }
         
@@ -101,6 +112,9 @@ void UART_LowLevel_Init(void)
     //CLK_PeripheralClockConfig(CLK_Peripheral_USART1, ENABLE);
       /* Enable the peripheral Clock */
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_USART1);
+  
+    PA_DDR |= (1 << 2); // PA2 - TXD,  PA3 - RXD 
+    PA_CR1 |= (1 << 2);  
 }
 
 /*
@@ -187,7 +201,7 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 226 : 106 -> 362
 482 : 362 -> 602
 */      
-      //  LED3_OFF();
+        LED3_OFF();
 
         if (Duty > (210*2) && Cycle < (902*2))  // 0.2mS - 2mS
         {
@@ -217,9 +231,11 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
         if (isStartBit == 1)
         {
             isStartBit = 0;
+            LED_TOGGLE();
         }
         else if (state==DATA)
         {
+            LED_TOGGLE();
             if (Duty > 210*2  && Cycle < (1156*2))  // 0.2mS - 2mS - && Cycle > (382*2)
             {
                 /*
@@ -267,7 +283,19 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
             {
                 process(Noise);
                 state = INIT;
-            }   
+            }
+
+            if (bufLen == 1)
+            {
+                USART1_DR = buf[0];
+                bufLen = 0;
+            }
+            else if (bufLen == 2)
+            {
+                uart_write(buf[0]);
+                USART1_DR = buf[1];
+                bufLen = 0;
+            }
         }
 
        
@@ -286,25 +314,37 @@ void process(uint8_t val)
 {
     if (val == StartBit)
     {
-        if (flag == 0)
-        {
-            //buf[0] = Cycle;
-            buf[1] = NumOfBits;
-            nfcData = _nfcData;
-            flag = 1;
-        }
+        // if (flag == 0)
+        // {
+        //     //buf[0] = Cycle;
+        //     buf[1] = NumOfBits;
+        //     nfcData = _nfcData;
+        //     nfcData1 = _nfcData1;
+        //     flag = 1;
+        // }
+        uart_write(NumOfBits);
+        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
+        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
+        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
+        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
+        uart_write(_nfcData >> 24); _nfcData >= 8;
+        uart_write(_nfcData >> 24); _nfcData >= 8;
+        uart_write(_nfcData >> 24); _nfcData >= 8;
+        uart_write(_nfcData >> 24); _nfcData >= 8;
 
         lastBit = 1;
-        i = 1;
+        i = 0;
         _nfcData = 0;
-        NumOfBits = 0;
-       // LED3_ON();
-        //LED_ON();
-    }
-    else if (val == Noise)
-    {
+        _nfcData1 = 0;
+
         
+        NumOfBits = 0;
+
+        LED3_ON();
     }
+    // else if (val == Noise)
+    // {
+    // }
     else if (val != Noise)
     {
         i++;
@@ -316,32 +356,26 @@ void process(uint8_t val)
         {
             if (val == Low)
             {
+                _nfcData1 <<= 1;
+                if (_nfcData & 0x80000000) _nfcData |= 1;
                 _nfcData <<= 1;
                 NumOfBits++;
-                LED3_TOGGLE();
+                buf[bufLen] = 0;
+                bufLen++;
             }
             else if (val == High)
             {
+                _nfcData1 <<= 1;
+                if (_nfcData & 0x80000000) _nfcData |= 1;
                 _nfcData <<= 1;
                 _nfcData |= 1;
                 NumOfBits++;
-                LED_TOGGLE();
+                buf[bufLen] = 1;
+                bufLen++;
             }
             
             i = 0;
         }
-            if (NumOfBits == 32)
-            {
-               // LED_OFF();
-            //     NumOfBits = 0;
-            //     if (flag == 0)
-            //     {
-            //         //buf[0] = Cycle;
-            //         buf[1] = 32;
-            //         nfcData = _nfcData;
-            //         flag = 1;
-            //     }
-            }
     }
 }
 
