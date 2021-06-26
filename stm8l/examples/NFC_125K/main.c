@@ -203,22 +203,34 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 
         if (Duty > (210*2) && Cycle < (902*2))  // 0.2mS - 2mS
         {
-            if (Cycle > 382*2 && Cycle < 642*2) // Low
+            if (Cycle < 382*2 || Cycle > 902*2) // Noise
+            {
+                Start = 0;
+            }
+            else if (Cycle < 642*2) // Low
             {
                 Start++;
-
-                if (Start == 11)
+                LED_TOGGLE();
+                USART1_DR = Start;
+            }
+            else //if (Cycle < 902*2) // High
+            {
+                
+                if (Start > 10)
                 {
-                    process(StartBit);
                     state = DATA;
                    // LED3_ON();
                     Start = 0;
                     isStartBit = 1;
+                    process(StartBit);
+
+                    process(Low);
+                    process(High);
+                    process(High);
                 }
-            }
-            else
-            {
+                /* Reset Start Bit 1 */
                 Start = 0;
+                USART1_DR = Start;
             }
         }
         else
@@ -229,11 +241,11 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
         if (isStartBit == 1)
         {
             isStartBit = 0;
-            LED_TOGGLE();
+            //LED_TOGGLE();
         }
         else if (state==DATA)
         {
-            LED_TOGGLE();
+            //LED_TOGGLE();
             if (Duty > 210*2  && Cycle < (1156*2))  // 0.2mS - 2mS - && Cycle > (382*2)
             {
                 /*
@@ -290,8 +302,8 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
             }
             else if (bufLen == 2)
             {
-               // uart_write(buf[0]);
-               // USART1_DR = buf[1];
+                //uart_write(buf[0]);
+               //USART1_DR = buf[1];
                 bufLen = 0;
             }
         }
@@ -313,17 +325,17 @@ void process(uint8_t val)
     uint8_t tmp = 0;
     if (val == StartBit)
     {
-        uart_write(NumOfBits);
-        for (i=0;i<8;i++)
-        {
-            uart_write(nfcData[i]);
-            nfcData[i] = 0;
-        }
+        LED3_ON();
+        //uart_write(NumOfBits);
+        // for (i=0;i<8;i++)
+        // {
+        //     uart_write(nfcData[i]);
+        //     nfcData[i] = 0;
+        // }
 
         lastBit = 0;
         i = 0;
         NumOfBits = 0;
-        LED3_ON();
     }
     // else if (val == Noise)
     // {
@@ -341,7 +353,7 @@ void process(uint8_t val)
             {
                 if (lastBit != (uint8_t)(NumOfBits >> 3))
                 {
-                    USART1_DR = nfcData[lastBit];
+                    //uart_write(nfcData[lastBit]);
                 }
                 lastBit = NumOfBits >> 3;
                 tmp = nfcData[lastBit];
@@ -357,7 +369,7 @@ void process(uint8_t val)
             {
                 if (lastBit != (uint8_t)(NumOfBits >> 3))
                 {
-                    USART1_DR = nfcData[lastBit];
+                    //uart_write(nfcData[lastBit]);
                 }
                 lastBit = NumOfBits >> 3;
                 tmp = nfcData[lastBit];
