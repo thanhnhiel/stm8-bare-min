@@ -211,12 +211,11 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
             {
                 Start++;
                 LED_TOGGLE();
-                USART1_DR = Start;
+                //USART1_DR = Start;
             }
             else //if (Cycle < 902*2) // High
             {
-                
-                if (Start > 10)
+                if (Start >= 9)
                 {
                     state = DATA;
                    // LED3_ON();
@@ -230,7 +229,7 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
                 }
                 /* Reset Start Bit 1 */
                 Start = 0;
-                USART1_DR = Start;
+                //USART1_DR = Start;
             }
         }
         else
@@ -295,25 +294,32 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
                 state = INIT;
             }
 
-            if (bufLen == 1)
-            {
-               // USART1_DR = buf[0];
-                bufLen = 0;
-            }
-            else if (bufLen == 2)
-            {
-                //uart_write(buf[0]);
-               //USART1_DR = buf[1];
-                bufLen = 0;
-            }
+
         }
 
-       
+        if (bufLen == 1)
+        {
+            uart_write(NumOfBits);
+            uart_write(buf[0]);
+            bufLen = 0;
+        }
+        else if (bufLen == 2)
+        {
+            uart_write(buf[0]);
+            uart_write(buf[1]);
+            uart_write(NumOfBits);
+            bufLen = 0;
+        }
 
-        /* Duty cycle computation */
-        //SignalDutyCycle = ((uint32_t) Duty * 100) / Cycle;
-        /* Frequency computation */
-        //SignalFrequency = (uint32_t) (2000000 / Cycle);
+        if (NumOfBits == 64)
+        {
+            for (uint8_t i=0;i<8;i++)
+            {
+                uart_write(nfcData[i]);
+                nfcData[i] = 0;
+            }
+            NumOfBits = 0;
+        }
     }
 }
 
@@ -351,10 +357,10 @@ void process(uint8_t val)
         {
             if (val == Low)
             {
-                if (lastBit != (uint8_t)(NumOfBits >> 3))
-                {
-                    //uart_write(nfcData[lastBit]);
-                }
+                // if (lastBit != (uint8_t)(NumOfBits >> 3))
+                // {
+                //     uart_write(nfcData[lastBit]);
+                // }
                 lastBit = NumOfBits >> 3;
                 tmp = nfcData[lastBit];
                 tmp <<= 1;
@@ -367,10 +373,10 @@ void process(uint8_t val)
             }
             else if (val == High)
             {
-                if (lastBit != (uint8_t)(NumOfBits >> 3))
-                {
-                    //uart_write(nfcData[lastBit]);
-                }
+                // if (lastBit != (uint8_t)(NumOfBits >> 3))
+                // {
+                //     uart_write(nfcData[lastBit]);
+                // }
                 lastBit = NumOfBits >> 3;
                 tmp = nfcData[lastBit];
                 tmp <<= 1;
