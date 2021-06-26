@@ -48,11 +48,9 @@ uint16_t buf[4];
 uint8_t bufLen = 0;
 uint8_t dataBit = 0;
 volatile uint8_t flag = 0;
-//volatile uint32_t nfcData = 0;
+uint8_t nfcData[8];
 volatile uint32_t _nfcData = 0;
 volatile uint32_t _nfcData1 = 0;
-volatile uint32_t nfcData = 0;
-volatile uint32_t nfcData1 = 0;
 
 
 uint8_t NumOfBits = 0;
@@ -287,13 +285,13 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 
             if (bufLen == 1)
             {
-                USART1_DR = buf[0];
+               // USART1_DR = buf[0];
                 bufLen = 0;
             }
             else if (bufLen == 2)
             {
-                uart_write(buf[0]);
-                USART1_DR = buf[1];
+               // uart_write(buf[0]);
+               // USART1_DR = buf[1];
                 bufLen = 0;
             }
         }
@@ -312,34 +310,19 @@ uint8_t lastBit = 0;
 
 void process(uint8_t val)
 {
+    uint8_t tmp = 0;
     if (val == StartBit)
     {
-        // if (flag == 0)
-        // {
-        //     //buf[0] = Cycle;
-        //     buf[1] = NumOfBits;
-        //     nfcData = _nfcData;
-        //     nfcData1 = _nfcData1;
-        //     flag = 1;
-        // }
         uart_write(NumOfBits);
-        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
-        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
-        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
-        uart_write(_nfcData1 >> 24); _nfcData1 >= 8;
-        uart_write(_nfcData >> 24); _nfcData >= 8;
-        uart_write(_nfcData >> 24); _nfcData >= 8;
-        uart_write(_nfcData >> 24); _nfcData >= 8;
-        uart_write(_nfcData >> 24); _nfcData >= 8;
+        for (i=0;i<8;i++)
+        {
+            uart_write(nfcData[i]);
+            nfcData[i] = 0;
+        }
 
-        lastBit = 1;
+        lastBit = 0;
         i = 0;
-        _nfcData = 0;
-        _nfcData1 = 0;
-
-        
         NumOfBits = 0;
-
         LED3_ON();
     }
     // else if (val == Noise)
@@ -350,25 +333,38 @@ void process(uint8_t val)
         i++;
         if (i == 1) 
         { 
-            lastBit = val;
+            //lastBit = val;
         }
         else if (i == 2)
         {
             if (val == Low)
             {
-                _nfcData1 <<= 1;
-                if (_nfcData & 0x80000000) _nfcData |= 1;
-                _nfcData <<= 1;
+                if (lastBit != (uint8_t)(NumOfBits >> 3))
+                {
+                    USART1_DR = nfcData[lastBit];
+                }
+                lastBit = NumOfBits >> 3;
+                tmp = nfcData[lastBit];
+                tmp <<= 1;
+                nfcData[lastBit] = tmp;
+                 
                 NumOfBits++;
                 buf[bufLen] = 0;
                 bufLen++;
+                
             }
             else if (val == High)
             {
-                _nfcData1 <<= 1;
-                if (_nfcData & 0x80000000) _nfcData |= 1;
-                _nfcData <<= 1;
-                _nfcData |= 1;
+                if (lastBit != (uint8_t)(NumOfBits >> 3))
+                {
+                    USART1_DR = nfcData[lastBit];
+                }
+                lastBit = NumOfBits >> 3;
+                tmp = nfcData[lastBit];
+                tmp <<= 1;
+                tmp |= 1;
+                nfcData[lastBit] = tmp;
+
                 NumOfBits++;
                 buf[bufLen] = 1;
                 bufLen++;
