@@ -33,6 +33,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 
+#define USE_BEEP
 #ifdef USE_BEEP
 
 /** @addtogroup STM8L15x_StdPeriph_Driver
@@ -47,7 +48,6 @@
 /** @defgroup BEEP_Exported_Types
   * @{
   */
-typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
 
 typedef struct BEEP_struct
 {

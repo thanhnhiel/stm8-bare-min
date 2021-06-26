@@ -204,6 +204,8 @@ void tim2_init()
     /* Enable the peripheral Clock */
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM2);
 
+    /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
+     *           = 2 MHz / (2 * 128 * (1 + (40000-1))) = 50 Hz */
     //clock at 2MHz
     /* Set TIM2 Frequency to 2Mhz */ 
     //TIM2_TimeBaseInit(TIM2_PRESCALER_1, 40000);

@@ -13,3 +13,5 @@ This example toggles an LED on PD4 every 250 milliseconds.
 |                    |              [GND]
 |                    |
  --------------------
+
+PB5 => Kit stm8s103f3

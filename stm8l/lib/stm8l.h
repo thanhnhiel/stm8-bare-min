@@ -23,6 +23,11 @@
  #define wfe()                 __asm__("wfe")    /* wait for event */
  #define halt()                __asm__("halt")   /* halt CPU */
 
+//#define DISABLE (0)
+//#define ENABLE (1)
+typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
+
+
 /** @defgroup EXTI_Interrupts
   *
   * @brief EXTI IT pending bit possible values
@@ -299,6 +304,29 @@ typedef enum
 #define PWR_CSR2_VREFINTF               0
 
 /* Clock */
+#define CLK_SYSCLKDiv_1   ((uint8_t)0x00) /*!< System Clock Divider: 1 */
+#define CLK_SYSCLKDiv_2   ((uint8_t)0x01) /*!< System Clock Divider: 2 */
+#define CLK_SYSCLKDiv_4   ((uint8_t)0x02) /*!< System Clock Divider: 4 */
+#define CLK_SYSCLKDiv_8   ((uint8_t)0x03) /*!< System Clock Divider: 8 */
+#define CLK_SYSCLKDiv_16  ((uint8_t)0x04) /*!< System Clock Divider: 16 */
+#define CLK_SYSCLKDiv_32  ((uint8_t)0x05) /*!< System Clock Divider: 32 */
+#define CLK_SYSCLKDiv_64  ((uint8_t)0x06) /*!< System Clock Divider: 64 */
+#define CLK_SYSCLKDiv_128 ((uint8_t)0x07) /*!< System Clock Divider: 128 */
+
+#define CLK_RTCCLKSource_Off ((uint8_t)0x00) /*!< Clock RTC Off */
+#define CLK_RTCCLKSource_HSI ((uint8_t)0x02) /*!< Clock RTC : HSI */
+#define CLK_RTCCLKSource_LSI ((uint8_t)0x04) /*!< Clock RTC : LSI */
+#define CLK_RTCCLKSource_HSE ((uint8_t)0x08) /*!< Clock RTC : HSE */
+#define CLK_RTCCLKSource_LSE ((uint8_t)0x10) /*!< Clock RTC : LSE */
+
+#define CLK_RTCCLKDiv_1  ((uint8_t)0x00) /*!< Clock RTC Div 1 */
+#define CLK_RTCCLKDiv_2  ((uint8_t)0x20) /*!< Clock RTC Div 2  */
+#define CLK_RTCCLKDiv_4  ((uint8_t)0x40) /*!< Clock RTC Div 4 */
+#define CLK_RTCCLKDiv_8  ((uint8_t)0x60) /*!< Clock RTC Div 8 */
+#define CLK_RTCCLKDiv_16 ((uint8_t)0x80) /*!< Clock RTC Div 16 */
+#define CLK_RTCCLKDiv_32 ((uint8_t)0xA0) /*!< Clock RTC  Div 32 */
+#define CLK_RTCCLKDiv_64 ((uint8_t)0xC0) /*!< Clock RTC  Div 64 */
+
 #define CLK_CKDIVR                      _SFR_(0xC0)
 #define CLK_CRTCR                       _SFR_(0xC1)
 #define CLK_CRTCR_RTCDIV2               7
@@ -381,6 +409,19 @@ typedef enum
 #define BEEP_CSR2                       _SFR_(0xF3)
 
 /* RTC */
+#define RTC_WakeUpClock_RTCCLK_Div16    ((uint8_t)0x00) /*!< (RTC clock) div 16*/
+#define RTC_WakeUpClock_RTCCLK_Div8     ((uint8_t)0x01) /*!< (RTC clock) div 8*/
+#define RTC_WakeUpClock_RTCCLK_Div4     ((uint8_t)0x02) /*!< (RTC clock) div 4*/
+#define RTC_WakeUpClock_RTCCLK_Div2     ((uint8_t)0x03) /*!< (RTC clock) div 2*/
+#define RTC_WakeUpClock_CK_SPRE_16bits  ((uint8_t)0x04) /*!< CK SPRE with a counter from 0x0000 to 0xFFFF */
+#define RTC_WakeUpClock_CK_SPRE_17bits  ((uint8_t)0x06) /*!< CK SPRE with a counter from 0x10000 to 0x1FFFF */
+
+#define RTC_IT_WUT   ((uint8_t)0x40)  /*!< Wake up Timer Interrupt */
+#define RTC_IT_ALRA  ((uint8_t)0x10)  /*!< Alarm A Interrupt */
+#define RTC_IT_TAMP  ((uint8_t)0x01)  /*!< Tamper Interrupt */
+
+#define WUTWF_TIMEOUT      ((uint16_t)0xFFFF)
+
 #define RTC_TR1                         _SFR_(0x140)
 #define RTC_TR2                         _SFR_(0x141)
 #define RTC_TR3                         _SFR_(0x142)
@@ -766,6 +807,22 @@ typedef enum
   TIM3_OCMODE_PWM1       = ((uint8_t)0x60),
   TIM3_OCMODE_PWM2       = ((uint8_t)0x70)
 } TIM3_OCMode_TypeDef;
+
+#define  ICPolarity_Rising   ((uint8_t)0x00) /*!< Input Capture on Rising Edge*/
+#define  ICPolarity_Falling  ((uint8_t)0x01)  /*!< Input Capture on Falling Edge*/
+
+
+#define  ICSelection_DirectTI     ((uint8_t)0x01) /*!< Input Capture mapped on the direct input*/
+#define  ICSelection_IndirectTI   ((uint8_t)0x02) /*!< Input Capture mapped on the indirect input*/
+#define  ICSelection_TRGI         ((uint8_t)0x03)  /*!< Input Capture mapped on the Trigger Input*/
+
+#define  ICPSC_DIV1   ((uint8_t)0x00)  /*!< Input Capture Prescaler = 1 (one capture every 1 event) */
+#define  ICPSC_DIV2   ((uint8_t)0x04)  /*!< Input Capture Prescaler = 2 (one capture every 2 events) */
+#define  ICPSC_DIV4   ((uint8_t)0x08)  /*!< Input Capture Prescaler = 4 (one capture every 4 events) */
+#define  ICPSC_DIV8   ((uint8_t)0x0C)   /*!< Input Capture Prescaler = 8 (one capture every 8 events) */
+
+#define TIM_SMCR_TS      ((uint8_t)0x70) /*!< Trigger Selection Mask. */
+#define TIM_SMCR_SMS     ((uint8_t)0x07) /*!< Slave Mode Selection Mask. */
 
 /*CCER1*/
 #define TIM3_CCER1_CC2P ((uint8_t)0x20) /*!< Capture/Compare 2 output Polarity mask. */

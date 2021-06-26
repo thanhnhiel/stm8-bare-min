@@ -1,2 +1,2 @@
-CFLAGS = -DUSE_BEEP
+#CFLAGS = -DUSE_BEEP
 include ../Makefile.include

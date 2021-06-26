@@ -2,10 +2,119 @@
 #define STM8S_H
 
 #include <stdint.h>
+#define INTERRUPT_HANDLER(a,b) void a() __interrupt(b)
 
+ /* traps require >=v3.4.3 -> else warn and skip */
+ #if SDCC_VERSION >= 30403
+   #define INTERRUPT_HANDLER_TRAP(a) void a() __trap 
+ #else
+   #warning traps require SDCC>=v3.4.3. Update if required
+   #define INTERRUPT_HANDLER_TRAP(a) void a()
+ #endif 
+ 
+ #define enableInterrupts()    __asm__("rim")    /* enable interrupts */
+ #define disableInterrupts()   __asm__("sim")    /* disable interrupts */
+
+/** @defgroup EXTI_Interrupts
+  *
+  * @brief EXTI IT pending bit possible values
+  * Values are coded in 0xXY format where
+  * X: the register index
+  *    X = 00:  EXTI_SR1
+  *    X = 01:  EXTI_SR2
+  * Y: the IT pending bit mask
+  * @{
+  */
+typedef enum
+{
+  EXTI_IT_Pin0    = (uint16_t)0x0001, /*!< GPIO Pin pos 0 */
+  EXTI_IT_Pin1    = (uint16_t)0x0002, /*!< GPIO Pin pos 1 */
+  EXTI_IT_Pin2    = (uint16_t)0x0004, /*!< GPIO Pin pos 2 */
+  EXTI_IT_Pin3    = (uint16_t)0x0008, /*!< GPIO Pin pos 3 */
+  EXTI_IT_Pin4    = (uint16_t)0x0010, /*!< GPIO Pin pos 4 */
+  EXTI_IT_Pin5    = (uint16_t)0x0020, /*!< GPIO Pin pos 5 */
+  EXTI_IT_Pin6    = (uint16_t)0x0040, /*!< GPIO Pin pos 6 */
+  EXTI_IT_Pin7    = (uint16_t)0x0080, /*!< GPIO Pin pos 7 */
+  EXTI_IT_PortB   = (uint16_t)0x0101, /*!< GPIO Port B    */
+  EXTI_IT_PortD   = (uint16_t)0x0102, /*!< GPIO Port D    */
+  EXTI_IT_PortE   = (uint16_t)0x0104, /*!< GPIO Port E    */
+  EXTI_IT_PortF   = (uint16_t)0x0108, /*!< GPIO Port F    */
+  EXTI_IT_PortG   = (uint16_t)0x0110, /*!< GPIO Port G    */
+  EXTI_IT_PortH   = (uint16_t)0x0120  /*!< GPIO Port H    */
+} EXTI_IT_TypeDef;
+
+
+#define     __IO    volatile         /*!< defines 'read / write' permissions  */
+
+typedef enum {
+  CLK_Peripheral1_TIM2    = (uint8_t)0x00, /*!< Peripheral Clock Enable 1, TIM2 */
+  CLK_Peripheral1_TIM3    = (uint8_t)0x01, /*!< Peripheral Clock Enable 1, TIM3 */
+  CLK_Peripheral1_TIM4    = (uint8_t)0x02, /*!< Peripheral Clock Enable 1, TIM4 */
+  CLK_Peripheral1_I2C1    = (uint8_t)0x03, /*!< Peripheral Clock Enable 1, I2C1 */
+  CLK_Peripheral1_SPI1    = (uint8_t)0x04, /*!< Peripheral Clock Enable 1, SPI1 */
+  CLK_Peripheral1_USART1  = (uint8_t)0x05, /*!< Peripheral Clock Enable 1, USART1 */
+  CLK_Peripheral1_BEEP    = (uint8_t)0x06, /*!< Peripheral Clock Enable 1, BEEP */
+  CLK_Peripheral1_DAC     = (uint8_t)0x07, /*!< Peripheral Clock Enable 1, DAC */
+  CLK_Peripheral2_ADC1    = (uint8_t)0x10, /*!< Peripheral Clock Enable 2, ADC1 */
+  CLK_Peripheral2_TIM1    = (uint8_t)0x11, /*!< Peripheral Clock Enable 2, TIM1 */
+  CLK_Peripheral2_RTC     = (uint8_t)0x12, /*!< Peripheral Clock Enable 2, RTC */
+  CLK_Peripheral2_LCD     = (uint8_t)0x13, /*!< Peripheral Clock Enable 2, LCD */
+  CLK_Peripheral2_DMA1    = (uint8_t)0x14, /*!< Peripheral Clock Enable 2, DMA1 */
+  CLK_Peripheral2_COMP    = (uint8_t)0x15, /*!< Peripheral Clock Enable 2, COMP1 and COMP2 */
+  CLK_Peripheral2_BOOTROM = (uint8_t)0x17,/*!< Peripheral Clock Enable 2, Boot ROM */
+  CLK_Peripheral3_AES     = (uint8_t)0x20, /*!< Peripheral Clock Enable 3, AES */
+  CLK_Peripheral3_TIM5    = (uint8_t)0x21, /*!< Peripheral Clock Enable 3, TIM5 */
+  CLK_Peripheral3_SPI2    = (uint8_t)0x22, /*!< Peripheral Clock Enable 3, SPI2 */
+  CLK_Peripheral3_USART2  = (uint8_t)0x23, /*!< Peripheral Clock Enable 3, USART2 */
+  CLK_Peripheral3_USART3  = (uint8_t)0x24,  /*!< Peripheral Clock Enable 3, USART3 */
+  CLK_Peripheral3_CSSLSE  = (uint8_t)0x25   /*!< Peripheral Clock Enable 3, CSS on LSE */
+} CLK_Peripheral_TypeDef;
 #define _MEM_(mem_addr)      (*(volatile uint8_t *)(mem_addr))
 #define _SFR_(mem_addr)      (*(volatile uint8_t *)((mem_addr)))
 #define _SFR16_(mem_addr)    (*(volatile uint16_t *)((mem_addr)))
+typedef enum
+{
+  EXTI_Trigger_Falling_Low    = (uint8_t)0x00, /*!< Interrupt on Falling edge and Low level */
+  EXTI_Trigger_Rising         = (uint8_t)0x01, /*!< Interrupt on Rising edge only */
+  EXTI_Trigger_Falling        = (uint8_t)0x02, /*!< Interrupt on Falling edge only */
+  EXTI_Trigger_Rising_Falling = (uint8_t)0x03  /*!< Interrupt on Rising and Falling edges */
+} EXTI_Trigger_TypeDef;
+
+typedef enum
+{
+  EXTI_Pin_0 = (uint8_t)0x00, /*!< GPIO Pin 0 */
+  EXTI_Pin_1 = (uint8_t)0x02, /*!< GPIO Pin 1 */
+  EXTI_Pin_2 = (uint8_t)0x04, /*!< GPIO Pin 2 */
+  EXTI_Pin_3 = (uint8_t)0x06, /*!< GPIO Pin 3 */
+  EXTI_Pin_4 = (uint8_t)0x10, /*!< GPIO Pin 4 */
+  EXTI_Pin_5 = (uint8_t)0x12, /*!< GPIO Pin 5 */
+  EXTI_Pin_6 = (uint8_t)0x14, /*!< GPIO Pin 6 */
+  EXTI_Pin_7 = (uint8_t)0x16  /*!< GPIO Pin 7 */
+} EXTI_Pin_TypeDef;
+
+/** @addtogroup EXTI_Registers_Bits_Definition
+  * @{
+  */
+/* CR1 */
+#define EXTI_CR1_P3IS      ((uint8_t)0xC0) /*!< EXTI Pin 3 external interrupt sensitivity bit Mask */
+#define EXTI_CR1_P2IS      ((uint8_t)0x30) /*!< EXTI Pin 2 external interrupt sensitivity bit Mask */
+#define EXTI_CR1_P1IS      ((uint8_t)0x0C) /*!< EXTI Pin 1  external interrupt sensitivity bit Mask */
+#define EXTI_CR1_P0IS      ((uint8_t)0x03) /*!< EXTI Pin 0 external interrupt sensitivity bit Mask */
+
+/* CR2 */
+#define EXTI_CR2_P7IS      ((uint8_t)0xC0) /*!< EXTI Pin 7 external interrupt sensitivity bit Mask */
+#define EXTI_CR2_P6IS      ((uint8_t)0x30) /*!< EXTI Pin 6 external interrupt sensitivity bit Mask */
+#define EXTI_CR2_P5IS      ((uint8_t)0x0C) /*!< EXTI Pin 5  external interrupt sensitivity bit Mask */
+#define EXTI_CR2_P4IS      ((uint8_t)0x03) /*!< EXTI Pin 4 external interrupt sensitivity bit Mask */
+
+/* CR3 */
+#define EXTI_CR3_PBIS      ((uint8_t)0x03) /*!< EXTI PORTB external interrupt sensitivity bits Mask */
+#define EXTI_CR3_PDIS      ((uint8_t)0x0C) /*!< EXTI PORTD external interrupt sensitivity bits Mask */
+#define EXTI_CR3_PEIS      ((uint8_t)0x30) /*!< EXTI PORTE external interrupt sensitivity bits Mask */
+#define EXTI_CR3_PFIS      ((uint8_t)0xC0) /*!< EXTI PORTF external interrupt sensitivity bits Mask */
+
+/* UNIQUE ID */
+#define UNIQUE_ID_ADDRESS      (0x4865)
 
 /* PORT A */
 #define PA_BASE_ADDRESS         0x5000
@@ -120,7 +229,28 @@
 #define RST_BASE_ADDRESS        0x50B3
 #define RST_SR                  _SFR_(RST_BASE_ADDRESS + 0x00)
 
+
+typedef enum {
+  CLK_PRESCALER_HSIDIV1   = (uint8_t)0x00, /*!< High speed internal clock prescaler: 1 */
+  CLK_PRESCALER_HSIDIV2   = (uint8_t)0x08, /*!< High speed internal clock prescaler: 2 */
+  CLK_PRESCALER_HSIDIV4   = (uint8_t)0x10, /*!< High speed internal clock prescaler: 4 */
+  CLK_PRESCALER_HSIDIV8   = (uint8_t)0x18, /*!< High speed internal clock prescaler: 8 */
+  CLK_PRESCALER_CPUDIV1   = (uint8_t)0x80, /*!< CPU clock division factors 1 */
+  CLK_PRESCALER_CPUDIV2   = (uint8_t)0x81, /*!< CPU clock division factors 2 */
+  CLK_PRESCALER_CPUDIV4   = (uint8_t)0x82, /*!< CPU clock division factors 4 */
+  CLK_PRESCALER_CPUDIV8   = (uint8_t)0x83, /*!< CPU clock division factors 8 */
+  CLK_PRESCALER_CPUDIV16  = (uint8_t)0x84, /*!< CPU clock division factors 16 */
+  CLK_PRESCALER_CPUDIV32  = (uint8_t)0x85, /*!< CPU clock division factors 32 */
+  CLK_PRESCALER_CPUDIV64  = (uint8_t)0x86, /*!< CPU clock division factors 64 */
+  CLK_PRESCALER_CPUDIV128 = (uint8_t)0x87  /*!< CPU clock division factors 128 */
+} CLK_Prescaler_TypeDef;
+
 /* Clock */
+#define  CLK_PRESCALER_HSIDIV1  ((uint8_t)0x00)
+#define  CLK_PRESCALER_HSIDIV2  ((uint8_t)0x08) /*!< High speed internal clock prescaler: 2 */
+#define  CLK_PRESCALER_HSIDIV4  ((uint8_t)0x10) /*!< High speed internal clock prescaler: 4 */
+#define  CLK_PRESCALER_HSIDIV8  ((uint8_t)0x18) /*!< High speed internal clock prescaler: 8 */
+
 #define CLK_BASE_ADDRESS        0x50C0
 #define CLK_ICKR                _SFR_(CLK_BASE_ADDRESS + 0x00)
 #define CLK_ICKR_REGAH          5
