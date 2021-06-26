@@ -161,8 +161,27 @@ INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
 #define DATA  1
 #define END   2
 
+/*
+L H . Detect Falling
+Duty : Low 
+T:  228
+2T: 486
+LowDuty : High
+T:  283
+2T: 540
+*/
+
+#define Duty_1T    228
+#define Duty_2T    486
+#define Delta      110
+
+#define LowDuty_1T    283
+#define LowDuty_2T    540
+
+
 INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 {
+    static uint8_t Count2 = 0;
     uint8_t tmpccrl, tmpccrh;
     uint16_t Cycle = 0, Duty = 0;
     uint16_t LowDuty = 0;
@@ -181,28 +200,76 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
 
     tmpccrh = TIM3_CCR2H;
     tmpccrl = TIM3_CCR2L;
-   
-    
+      
 
     if (Cycle != 0)
     {
         Duty = (uint16_t)(tmpccrl);
         Duty |= (uint16_t)((uint16_t)tmpccrh << 8);
         LowDuty = Cycle - Duty;
-/*
-541/1026
-1026 // 902 -> 1156 : Change two times
-772 // 642 -> 902 : Change bit - High
-512 // 382 -> 642 : Don't Change - Low
-313
-//== Duty==========
-226 : 106 -> 362
-482 : 362 -> 602
-*/      
-        LED3_OFF();
 
+        if (Duty < (Duty_1T - Delta)*2 || Duty > (Duty_2T + Delta)*2)
+        {
+            Duty = 0; // Noise
+        }
+        else if (Duty < (Duty_1T + Delta)*2)
+        {
+            Duty = 1; // 1T
+        }
+        else
+        {
+            Duty = 2;  // 2T   
+        }
+
+        if (LowDuty < (LowDuty_1T - Delta)*2 || LowDuty > (LowDuty_2T + Delta)*2)
+        {
+            LowDuty = 0; // Noise
+        }
+        else if (LowDuty < (LowDuty_1T + Delta)*2)
+        {
+            LowDuty = 1; // 1T
+        }
+        else
+        {
+            LowDuty = 2;  // 2T   
+        }
+   
+        //LED3_OFF();
+
+        if (Duty == 2 && LowDuty == 1)
+        { // 2T Low - T High  ()
+            Count2 = 1;
+            putchar(Count2);
+        }
+        else if (Duty == 1 && LowDuty == 1)
+        { // Low
+            Count2++;
+            putchar(Count2);
+        }
+        else if (Duty == 1 && LowDuty == 2 && 
+                    Count2 >= 9)
+        {
+            LED3_TOGGLE();
+            putchar(Count2);
+            Count2 = 0;
+            putchar(2);
+        }        
+        else
+        {
+            LED3_OFF();
+            putchar(0x0F);
+            Count2 = 0;
+        }
+#if 0
+        // {
+        //     LED3_TOGGLE();
+        //     putchar(Duty/20);
+        //     putchar(LowDuty/20);
+        // }
+        
         if (Duty > (210*2) && Cycle < (902*2))  // 0.2mS - 2mS
         {
+            if (Duty > LowDuty && (Duty - LowDuty) > 80*2)
             if (Cycle < 382*2 || Cycle > 902*2) // Noise
             {
                 Start = 0;
@@ -320,7 +387,9 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
             }
             NumOfBits = 0;
         }
+#endif  
     }
+  
 }
 
 uint8_t i = 0;
