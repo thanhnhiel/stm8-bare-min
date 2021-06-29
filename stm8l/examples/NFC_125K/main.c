@@ -77,6 +77,8 @@ void main()
 
     while (1) 
     {
+        TIM2_BKR |= TIM_BKR_MOE;
+        delay_ms(70*64/27);
         if (flag!=0)
         {
             for (uint8_t i=0;i<8;i++)
@@ -85,6 +87,9 @@ void main()
             }
             flag = 0;
         }
+
+        TIM2_BKR &= (uint8_t)(~TIM_BKR_MOE);
+        delay_ms(1000);
         
         //delay_ms(2000);
     }
@@ -486,67 +491,6 @@ void tim3Input_init()
     //TIM3_Cmd(ENABLE) - TIM_CR1_CEN;
     TIM3_CR1 |= 0x01;
 }
-
-#if 0
-void tim3_init()
-{
-    /* REMAP_Pin_TIM3Channel1: TIM3 Channel 1 (PB1) remapping to PI0 
-     * REMAP_Pin_TIM3Channel2: TIM3 Channel 2 (PD0) remapping to PI3 
-     */
-    // 0b1110 0000
-	//GPIO_Init(GPIOD, GPIO_Pin_1, GPIO_MODE_OUT_PP_LOW_FAST);
-    /* Clear Data */
-    PB_ODR &= (uint8_t)(~(1 << 1));
-    /* Set Output mode */
-    PB_DDR |= (uint8_t)(1 << 1);
-    /* Push-Pull/Open-Drain (Output) modes selection */
-    PB_CR1 |= (uint8_t)(1 << 1);
-    /* Slow slope */
-    PB_CR2 |= (uint8_t)(1 << 1);
-
-    /* Enable the peripheral Clock */
-    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM3);
-    /* Set TIM3 Frequency to 2Mhz */ 
-    //TIM3_TimeBaseInit(TIM3_PRESCALER_1, 40000); //update every 20ms (50Hz) the duty cycle
-    /* Set the Prescaler value */
-    TIM3_PSCR = (uint8_t)(TIM3_PRESCALER_1);
-    /* Set the Autoreload value */
-    TIM3_ARRH = (uint8_t)(40000 >> 8);
-    TIM3_ARRL = (uint8_t)(40000);
-
-    /* Channel 1 PWM configuration - PB1 */ 
-    //TIM3_OC1Init(TIM3_OCMODE_PWM1, TIM3_OUTPUTSTATE_ENABLE, ppm, TIM3_OCPOLARITY_HIGH);
-    /* Disable the Channel 1: Reset the CCE Bit, Set the Output State , the Output Polarity */
-    TIM3_CCER1 &= (uint8_t)(~( TIM3_CCER1_CC1E | TIM3_CCER1_CC1P));
-    /* Set the Output State &  Set the Output Polarity  */
-    TIM3_CCER1 |= (uint8_t)((TIM3_OUTPUTSTATE_ENABLE & TIM3_CCER1_CC1E) | (TIM3_OCPOLARITY_HIGH & TIM3_CCER1_CC1P));
-
-    /* Reset the Output Compare Bits & Set the Output Compare Mode */
-    TIM3_CCMR1 = (uint8_t)((TIM3_CCMR1 & (uint8_t)(~TIM3_CCMR_OCM)) | (uint8_t)TIM3_OCMODE_PWM1);
-
-    /* Set the Pulse value */
-    uint16_t ppm2 = 2000;
-    TIM3_CCR1H = (uint8_t)(ppm2 >> 8);
-    TIM3_CCR1L = (uint8_t)(ppm2);
-
-    /* Enable TIM3 */
-    //TIM3_ITConfig(TIM3_IT_UPDATE ,ENABLE);
-    TIM3_IER |= (uint8_t)TIM3_IT_UPDATE;
-
-    //TIM3_OC1PreloadConfig(ENABLE);
-    TIM3_CCMR1 |= (uint8_t)TIM3_CCMR_OCxPE;
-
-    /* Enables TIM3 peripheral Preload register on ARR */
-    //TIM3_ARRPreloadConfig(ENABLE);
-    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_ARPE);
-
-    //TIM3_Cmd(ENABLE);
-    TIM3_CR1 |= (uint8_t)(1 << TIM3_CR1_CEN);
-
-    /* TIM2_Ctrl PWM Outputs */
-    TIM3_BKR |= TIM_BKR_MOE;
-}
-#endif
 
 void tim2_init()
 {
