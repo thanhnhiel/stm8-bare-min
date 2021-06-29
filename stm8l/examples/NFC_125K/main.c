@@ -37,7 +37,7 @@ void TIM3_PWMIConfig(uint8_t icpolarity,
                 uint8_t icselection,
                 uint8_t ICPrescaler);
 void tim3Input_init();
-void tim4_init();
+//void tim4_init();
 void UART_LowLevel_Init(void);
 void process(uint8_t val);
 __IO uint8_t tim3_ov = 0;
@@ -70,9 +70,8 @@ void main()
     LED2_OFF();
     LED_ON();
 
-    // tim2_init();
+    tim2_init();
     tim3Input_init();
-    tim4_init();
 
     enableInterrupts();
 
@@ -121,25 +120,25 @@ int getchar() {
     return uart_read();
 }
 
-INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
-{
-    count++;
-    //if (count == 100)
-    {
-     //   count = 0;
-        LED2_TOGGLE();
-    }
+// INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
+// {
+//     count++;
+//     //if (count == 100)
+//     {
+//      //   count = 0;
+//         LED2_TOGGLE();
+//     }
  
-    /* Clear the IT pending Bit */
-    TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
-}
+//     /* Clear the IT pending Bit */
+//     TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
+// }
 
 
-INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
-{
-    //LED_TOGGLE();
-    TIM2_SR1 = (uint8_t)(~TIM2_IT_UPDATE);
-}
+// INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
+// {
+//     //LED_TOGGLE();
+//     TIM2_SR1 = (uint8_t)(~TIM2_IT_UPDATE);
+// }
 
 #define Noise      0
 #define DoubleHigh 1
@@ -371,24 +370,24 @@ INTERRUPT_HANDLER(TIM3_UPD_IRQHandler, TIM3_UPD_ISR)
 }
 
 
-void tim4_init()
-{
-    //===============================
-     /* Enable the peripheral Clock */
-    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM4);
+// void tim4_init()
+// {
+//     //===============================
+//      /* Enable the peripheral Clock */
+//     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM4);
 
-    /* Prescaler = 128 */
-    TIM4_PSCR = TIM2_PRESCALER_1;
+//     /* Prescaler = 128 */
+//     TIM4_PSCR = TIM2_PRESCALER_1;
 
-    /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
-     *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
-    TIM4_ARR = 99;
+//     /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
+//      *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
+//     TIM4_ARR = 99;
 
-    //TIM4_IER |= (1 << TIM4_IER_UIE); // Enable Update Interrupt
-    TIM4_IER |= (uint8_t)TIM4_IT_UPDATE;
+//     //TIM4_IER |= (1 << TIM4_IER_UIE); // Enable Update Interrupt
+//     TIM4_IER |= (uint8_t)TIM4_IT_UPDATE;
 
-    TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
-}
+//     TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
+// }
 
 
 void TIM3_PWMIConfig(uint8_t icpolarity,
@@ -596,7 +595,7 @@ void tim2_init()
 
     /* Enable TIM2 */
     //TIM2_ITConfig(TIM2_IT_UPDATE ,ENABLE);
-    TIM2_IER |= (uint8_t)TIM2_IT_UPDATE;
+ //   TIM2_IER |= (uint8_t)TIM2_IT_UPDATE;
 
     //TIM2_OC1PreloadConfig(ENABLE);
     TIM2_CCMR1 |= (uint8_t)TIM2_CCMR_OCxPE;
