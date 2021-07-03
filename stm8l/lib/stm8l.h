@@ -779,7 +779,7 @@ typedef enum
 #define TIM2_CCR2H                      _SFR_(0x263)
 #define TIM2_CCR2L                      _SFR_(0x264)
 #define TIM2_BKR                        _SFR_(0x265)
-#define TIM_BKR_MOE      ((uint8_t)0x80) /*!< Main Output Enable Mask. */
+#define TIM_BKR_MOE                   ((uint8_t)0x80) /*!< Main Output Enable Mask. */
 #define TIM2_OISR                       _SFR_(0x266)
 
 /* TIM3 */
