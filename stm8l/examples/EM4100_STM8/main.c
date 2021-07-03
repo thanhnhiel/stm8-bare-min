@@ -6,7 +6,7 @@
 #include "delay.h"
 //#include "beep.h"
 
-#define LED_PIN     4
+#define LED_PIN     1
 #define LED2_PIN     7
 #define LED3_PIN     2
 
@@ -16,18 +16,28 @@
        PB_DDR |= (1 << LED2_PIN | 1 << LED3_PIN); \
        PB_CR1 |= (1 << LED2_PIN | 1 << LED3_PIN); \
        }
+
+#define LED2_INIT() { \
+       PB_DDR |= (1 << LED2_PIN); \
+       PB_CR1 |= (1 << LED2_PIN); \
+       }
+
+#define LED3_INIT() { \
+       PB_DDR |= (1 << LED3_PIN); \
+       PB_CR1 |= (1 << LED3_PIN); \
+       }              
       
-#define LED_OFF()  PC_ODR &= ~(1 << LED_PIN)
-#define LED_ON()  PC_ODR |= (1 << LED_PIN)
+#define LED_ON()  PC_ODR &= ~(1 << LED_PIN)
+#define LED_OFF()  PC_ODR |= (1 << LED_PIN)
 #define LED_TOGGLE()  PC_ODR ^= (1 << LED_PIN)
 
-#define LED2_OFF()  PB_ODR &= ~(1 << LED2_PIN)
-#define LED2_ON()  PB_ODR |= (1 << LED2_PIN)
-#define LED2_TOGGLE()  PB_ODR ^= (1 << LED2_PIN)
+// #define LED2_OFF()  PB_ODR &= ~(1 << LED2_PIN)
+// #define LED2_ON()  PB_ODR |= (1 << LED2_PIN)
+// #define LED2_TOGGLE()  PB_ODR ^= (1 << LED2_PIN)
 
-#define LED3_OFF()  PB_ODR &= ~(1 << LED3_PIN)
-#define LED3_ON()  PB_ODR |= (1 << LED3_PIN)
-#define LED3_TOGGLE()  PB_ODR ^= (1 << LED3_PIN)
+// #define LED3_OFF()  PB_ODR &= ~(1 << LED3_PIN)
+// #define LED3_ON()  PB_ODR |= (1 << LED3_PIN)
+// #define LED3_TOGGLE()  PB_ODR ^= (1 << LED3_PIN)
 
 void TIM3_DeInit(void);
 void tim2_init();
@@ -61,24 +71,27 @@ void main()
     CLK_CKDIVR = CLK_SYSCLKDiv_8;
     LED_INIT();
     LED_ON();
-    LED2_ON();
-    LED3_OFF();
+    LED2_INIT();
+    LED3_INIT();
+  //  LED2_ON();
+  //  LED3_OFF();
     delay_ms(2000);
     UART_LowLevel_Init();
     uart_init();
     printf("Test\r\n");
-    LED2_OFF();
-    LED_ON();
+   // LED2_OFF();
+    LED_OFF();
 
-    tim2_init();
-    tim3Input_init();
+   tim2_init();
+   tim3Input_init();
 
     enableInterrupts();
 
+
     while (1) 
     {
-        TIM2_BKR |= TIM_BKR_MOE;
-        delay_ms(30);
+       // TIM2_BKR |= TIM_BKR_MOE;
+      //  delay_ms(30);
         if (flag!=0)
         {
             for (uint8_t i=0;i<8;i++)
@@ -88,8 +101,8 @@ void main()
             flag = 0;
         }
 
-        TIM2_BKR &= (uint8_t)(~TIM_BKR_MOE);
-        delay_ms(1000);
+      //  TIM2_BKR &= (uint8_t)(~TIM_BKR_MOE);
+     //   delay_ms(1000);
         
         //delay_ms(2000);
     }
@@ -244,7 +257,7 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
                     Start >= 9)
         {   // Start Bit - 1T/2T
             LED_ON();
-            LED2_OFF();
+           // LED2_OFF();
             //putchar(Start);
             Start = 0;
             //putchar(2);
@@ -265,7 +278,7 @@ INTERRUPT_HANDLER(TIM3_CC_IRQHandler, TIM3_CC_ISR)
             }
             else 
             {
-                LED3_TOGGLE();
+                //LED3_TOGGLE();
                 process(Low);
                 if (Duty == 2) process(Low);
 
@@ -492,6 +505,9 @@ void tim3Input_init()
     TIM3_CR1 |= 0x01;
 }
 
+//#define PWM_PIN 0
+#define PWM_PIN 2
+
 void tim2_init()
 {
     /* REMAP_Pin_TIM2Channel1: TIM2 Channel 1 (PB0) remapping to PC5
@@ -500,13 +516,13 @@ void tim2_init()
     // 0b1110 0000
 	//GPIO_Init(GPIOB, GPIO_Pin_0, GPIO_MODE_OUT_PP_LOW_FAST);
     /* Clear Data */
-    PB_ODR &= (uint8_t)(~(1 << 0));
+    PB_ODR &= (uint8_t)(~(1 << PWM_PIN));
     /* Set Output mode */
-    PB_DDR |= (uint8_t)(1 << 0);
+    PB_DDR |= (uint8_t)(1 << PWM_PIN);
     /* Push-Pull/Open-Drain (Output) modes selection */
-    PB_CR1 |= (uint8_t)(1 << 0);
+    PB_CR1 |= (uint8_t)(1 << PWM_PIN);
     /* Slow slope */
-    PB_CR2 |= (uint8_t)(1 << 0);
+    PB_CR2 |= (uint8_t)(1 << PWM_PIN);
 
     /* Enable the peripheral Clock */
     CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM2);
@@ -522,6 +538,7 @@ void tim2_init()
     TIM2_ARRH = (uint8_t)(15 >> 8);
     TIM2_ARRL = (uint8_t)(15);
   
+  #if 0
 	/* Channel 1 PWM configuration */ 
     //TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, ppm, TIM2_OCPOLARITY_HIGH);
     /* Disable the Channel 1 - PB0 : Reset the CCE Bit, Set the Output State , the Output Polarity */
@@ -543,7 +560,37 @@ void tim2_init()
 
     //TIM2_OC1PreloadConfig(ENABLE);
     TIM2_CCMR1 |= (uint8_t)TIM2_CCMR_OCxPE;
-  
+#endif
+	/* Channel 1 PWM configuration */ 
+    //TIM2_OC1Init(TIM2_OCMODE_PWM1, TIM2_OUTPUTSTATE_ENABLE, ppm, TIM2_OCPOLARITY_HIGH);
+    /* Disable the Channel 1 - PB2 : Reset the CCE Bit, Set the Output State , the Output Polarity */
+    TIM2_CCER1 &= (uint8_t)(~(TIM2_CCER1_CC2E)); 
+
+    /* Reset the Output Compare Bits  & Set the Ouput Compare Mode */
+    TIM2_CCMR2 = (uint8_t)((TIM2_CCMR1 & (uint8_t)(~(TIM2_CCMR_OCM))) | (uint8_t)TIM2_OCMODE_PWM1);
+
+    /* Set the Output State */
+    TIM2_CCER1 |= TIM2_CCER1_CC2E;
+
+    /* Set the Output Polarity */
+    TIM2_CCER1 |= TIM2_CCER1_CC2P;
+
+    /* Set the Output Idle state */
+    //TIM2_OISR |= TIM2_OISR_OIS2;
+
+    /* Set the Pulse value */
+    uint16_t ppm = 8;
+    TIM2_CCR2H = (uint8_t)(ppm >> 8);
+    TIM2_CCR2L = (uint8_t)(ppm);
+
+    /* Enable TIM2 */
+    //TIM2_ITConfig(TIM2_IT_UPDATE ,ENABLE);
+ //   TIM2_IER |= (uint8_t)TIM2_IT_UPDATE;
+
+    //TIM2_OC2PreloadConfig(ENABLE);
+    TIM2_CCMR2 |= (uint8_t)TIM2_CCMR_OCxPE;
+    //===============================================
+
 	/* Enables TIM2 peripheral Preload register on ARR */
 	//TIM2_ARRPreloadConfig(ENABLE);
 	TIM2_CR1 |= (uint8_t)TIM2_CR1_ARPE;
