@@ -26,7 +26,7 @@
 //#define DISABLE (0)
 //#define ENABLE (1)
 typedef enum {DISABLE = 0, ENABLE = !DISABLE} FunctionalState;
-
+ 
 
 /** @defgroup EXTI_Interrupts
   *
@@ -993,6 +993,47 @@ typedef enum
 #define TIM5_OISR                       _SFR_(0x316)
 
 /* ADC1 */
+
+#define   ADC_Channel_0           ((uint16_t)0x0301)  /*!< Channel 00 */
+#define   ADC_Channel_1           ((uint16_t)0x0302)  /*!< Channel 01 */
+#define   ADC_Channel_2           ((uint16_t)0x0304)  /*!< Channel 02 */
+#define   ADC_Channel_3           ((uint16_t)0x0308)  /*!< Channel 03 */
+#define   ADC_Channel_4           ((uint16_t)0x0310)  /*!< Channel 04 */
+#define   ADC_Channel_5           ((uint16_t)0x0320)  /*!< Channel 05 */
+#define   ADC_Channel_6           ((uint16_t)0x0340)  /*!< Channel 06 */
+#define   ADC_Channel_7           ((uint16_t)0x0380)  /*!< Channel 07 */
+                                  
+#define   ADC_Channel_8           ((uint16_t)0x0201)  /*!< Channel 08 */
+#define   ADC_Channel_9           ((uint16_t)0x0202)  /*!< Channel 09 */
+#define   ADC_Channel_10          ((uint16_t)0x0204)  /*!< Channel 10 */
+#define   ADC_Channel_11          ((uint16_t)0x0208)  /*!< Channel 11 */
+#define   ADC_Channel_12          ((uint16_t)0x0210)  /*!< Channel 12 */
+#define   ADC_Channel_13          ((uint16_t)0x0220)  /*!< Channel 13 */
+#define   ADC_Channel_14          ((uint16_t)0x0240)  /*!< Channel 14 */
+#define   ADC_Channel_15          ((uint16_t)0x0280)  /*!< Channel 15 */
+                                  
+#define   ADC_Channel_16          ((uint16_t)0x0101)  /*!< Channel 16 */
+#define   ADC_Channel_17          ((uint16_t)0x0102)  /*!< Channel 17 */
+#define   ADC_Channel_18          ((uint16_t)0x0104)  /*!< Channel 18 */
+#define   ADC_Channel_19          ((uint16_t)0x0108)  /*!< Channel 19 */
+#define   ADC_Channel_20          ((uint16_t)0x0110)  /*!< Channel 20 */
+#define   ADC_Channel_21          ((uint16_t)0x0120)  /*!< Channel 21 */
+#define   ADC_Channel_22          ((uint16_t)0x0140)  /*!< Channel 22 */
+#define   ADC_Channel_23          ((uint16_t)0x0180)  /*!< Channel 23 */
+                                  
+#define   ADC_Channel_24          ((uint16_t)0x0001)  /*!< Channel 24 */
+#define   ADC_Channel_25          ((uint16_t)0x0002)  /*!< Channel 25 */
+#define   ADC_Channel_26          ((uint16_t)0x0004)  /*!< Channel 26 */
+#define   ADC_Channel_27          ((uint16_t)0x0008)  /*!< Channel 27 */
+                                  
+#define   ADC_Channel_Vrefint     ((uint16_t)0x0010)  /*!< Vrefint Channel  */
+#define   ADC_Channel_TempSensor  ((uint16_t)0x0020)  /*!< Temperature sensor Channel  */
+                                  
+#define   ADC_Channel_00To07      ((uint16_t)0x03FF)  /*!<select from channel00 to channel07 */
+#define   ADC_Channel_08To15      ((uint16_t)0x02FF)  /*!<select from channel08 to channel15 */
+#define   ADC_Channel_16To23      ((uint16_t)0x01FF)  /*!<select from channel16 to channel23 */
+#define   ADC_Channel_24To27      ((uint16_t)0x00FF)  /*!<select from channel24 to channel27 */
+
 #define ADC1_CR1                        _SFR_(0x340)
 #define ADC1_CR1_OVERIE                 7
 #define ADC1_CR1_RES1                   6
@@ -1030,6 +1071,10 @@ typedef enum
 #define ADC1_HTRL                       _SFR_(0x347)
 #define ADC1_LTRH                       _SFR_(0x348)
 #define ADC1_LTRL                       _SFR_(0x349)
+
+#define ADC1_SQR_ADR            (0x34A)
+#define ADC1_TRIGR_ADR          (0x34E)
+
 #define ADC1_SQR1                       _SFR_(0x34A)
 #define ADC1_SQR1_DMAOFF                7
 #define ADC1_SQR1_CHSEL_STS             5
