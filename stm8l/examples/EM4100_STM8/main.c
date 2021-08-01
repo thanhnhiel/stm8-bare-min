@@ -10,6 +10,7 @@ void RTC_WakeUpClockConfig(uint8_t RTC_WakeUpClock);
 void RTC_ITConfig(uint8_t RTC_IT, uint8_t NewState);
 void RTC_SetWakeUpCounter(uint16_t RTC_WakeupCounter);
 void RTC_WakeUpCmd(uint8_t NewState);
+void delayMS(uint16_t time);
 
 #define LED_PIN     1
 #define LED2_PIN     7
@@ -76,8 +77,10 @@ uint8_t nfcData[8];
 uint8_t buf[8];
 volatile uint32_t _nfcData = 0;
 volatile uint32_t _nfcData1 = 0;
+void tim4_init();
+volatile uint16_t tm4_count = 0;
 
-
+void rtc_init();
 uint8_t NumOfBits = 0;
 
 void main() 
@@ -95,7 +98,11 @@ void main()
   //  LED2_ON();
   //  LED3_OFF();
     PWR_OFF();
-    delay_ms(2000);
+    tim4_init();
+    enableInterrupts();
+
+    delayMS(2000);
+    
     UART_LowLevel_Init();
     uart_init();
     printf("Test\r\n");
@@ -105,15 +112,15 @@ void main()
 
    tim2_init();
    tim3Input_init();
+ 
     
-    enableInterrupts();
 
 
     while (1) 
     {
         TIM2_BKR |= TIM_BKR_MOE;
         PWR_ON();
-        for (j=0;j<200;j++)      // 0.59 = 200 
+        for (j=0;j<40;j++)      // 0.59 = 200 
         {
             if (flag!=0)
             {
@@ -123,13 +130,13 @@ void main()
                 }
                 flag = 0;
             }
-            delay_ms(1);
+            delayMS(1);
         }
 
         PWR_OFF();
         TIM2_BKR &= (uint8_t)(~TIM_BKR_MOE);
         /* RTC will wake-up from halt every 3*2 second*/
-        RTC_SetWakeUpCounter(3);
+        RTC_SetWakeUpCounter(2000 * 10 / 4); // 1000 -> 435.0mS
         RTC_WakeUpCmd(ENABLE);
         /* Enter Halt mode*/
         halt();
@@ -150,9 +157,53 @@ void rtc_init()
     /* Enable RTC clock */
     CLK_PCKENR2 |= (uint8_t)((uint8_t)1 << 2);
     /* RTC_WakeUpClockConfig */
-    RTC_WakeUpClockConfig(RTC_WakeUpClock_CK_SPRE_16bits);
+   // RTC_WakeUpClockConfig(RTC_WakeUpClock_CK_SPRE_16bits);
+    RTC_WakeUpClockConfig(RTC_WakeUpClock_RTCCLK_Div16);
     /* Enable RTC WUT */
     RTC_ITConfig(RTC_IT_WUT, ENABLE);
+}
+
+
+INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
+{
+    /* Clear the IT pending Bit */
+    TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
+    if (tm4_count) tm4_count--;
+    //LED_TOGGLE();
+}
+
+
+void delayMS(uint16_t time)
+{
+	tm4_count = time;
+
+	/* Reset Counter Register value */
+	TIM4_CNTR = (uint8_t)(0);
+
+	/* Enable Timer */
+	TIM4_CR1 |= TIM4_CR1_CEN;
+
+	while(tm4_count);
+}
+
+
+void tim4_init()
+{
+    //===============================
+     /* Enable the peripheral Clock */
+    CLK_PCKENR1 |= (uint8_t)((uint8_t)1 << CLK_Peripheral1_TIM4);
+
+    /* Prescaler = 128 */
+    TIM4_PSCR = TIM2_PRESCALER_128;
+
+    /* Frequency = F_CLK / (2 * prescaler * (1 + ARR))
+     *           = 2 MHz / (2 * 128 * (1 + 77)) = 100 Hz */
+    TIM4_ARR = 15;
+
+    //TIM4_IER |= (1 << TIM4_IER_UIE); // Enable Update Interrupt
+    TIM4_IER |= (uint8_t)TIM4_IT_UPDATE;
+
+    TIM4_CR1 |= (1 << TIM4_CR1_CEN); // Enable TIM4
 }
 
 void UART_LowLevel_Init(void)
@@ -185,18 +236,7 @@ int getchar() {
     return uart_read();
 }
 
-// INTERRUPT_HANDLER(TIM4_IRQHandler, TIM4_ISR) 
-// {
-//     count++;
-//     //if (count == 100)
-//     {
-//      //   count = 0;
-//         LED2_TOGGLE();
-//     }
- 
-//     /* Clear the IT pending Bit */
-//     TIM4_SR = (uint8_t)(~TIM4_IT_UPDATE);
-// }
+
 
 
 // INTERRUPT_HANDLER(TIM2_UPD_IRQHandler, TIM2_UPD_ISR)
